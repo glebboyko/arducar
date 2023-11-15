@@ -60,6 +60,10 @@ class SegmentTree {
     return data_[index].val;
   }
 
+  void SegmUpdate(const T& val, const T& left, const T& right) {
+    SegmUpdate(0, val, left, right);
+  }
+
  private:
   struct Segment {
     T left = T();
@@ -157,6 +161,19 @@ class SegmentTree {
       UpdateElem(GetParentIndex(node_index));
     }
     PushDebt(node_index);
+  }
+
+  void SegmUpdate(int curr_node, const T& val, const T& left, const T& right) {
+    switch (IntersectSegm(data_[curr_node].segment, {left, right})) {
+      case NoIntersect:
+        return;
+      case In:
+        data_[curr_node].debt = func_g_(data_[curr_node].debt, val);
+        return;
+      case Intersect:
+        SegmUpdate(GetLeftIndex(curr_node), val, left, right);
+        SegmUpdate(GetRightIndex(curr_node), val, left, right);
+    }
   }
 };
 
