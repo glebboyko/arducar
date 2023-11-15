@@ -94,7 +94,7 @@ class SegmentTree {
     if (first.left > second.right || first.right < second.left) {
       return NoIntersect;
     }
-    if (first.left > second.left && first.right < second.right) {
+    if (first.left >= second.left && first.right <= second.right) {
       return In;
     }
     return Intersect;
