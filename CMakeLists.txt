@@ -8,4 +8,4 @@ include_directories(.)
 
 
 #adding executables
-add_executable(arducar main.cpp)
+add_executable(arducar main.cpp map/env-shot.hpp map/env-shot.cpp)
