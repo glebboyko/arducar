@@ -38,7 +38,7 @@ class SegmentTree {
     for (int i = 0; i < num_of_elements_; ++i) {
       data_[i + num_of_elements_ - 1].segment = {i, i};
     }
-    for (int i = 0; i < num_of_elements_ - 1; ++i) {
+    for (int i = num_of_elements_ - 2; i >= 0; --i) {
       data_[i].segment = UniteSegm(data_[GetLeftIndex(i)].segment,
                                    data_[GetRightIndex(i)].segment);
     }
