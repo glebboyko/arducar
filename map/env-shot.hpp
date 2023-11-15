@@ -44,7 +44,7 @@ class SegmentTree {
     }
 
     for (int i = num_of_elements_ - 2; i >= 0; --i) {
-      data_[i] = func_f_(data_[2 * i + 1].val, data_[2 * i + 2].val);
+      data_[i].val = func_f_(data_[2 * i + 1].val, data_[2 * i + 2].val);
     }
   }
 
