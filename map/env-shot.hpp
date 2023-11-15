@@ -34,6 +34,14 @@ class SegmentTree {
 
     data_ = decltype(data_)(2 * num_of_elements_ - 1,
                             {func_f_.GetNeutral(), func_g_.GetNeutral()});
+
+    for (int i = 0; i < num_of_elements_; ++i) {
+      data_[i + num_of_elements_ - 1].segment = {i, i};
+    }
+    for (int i = 0; i < num_of_elements_ - 1; ++i) {
+      data_[i].segment = UniteSegm(data_[GetLeftIndex(i)].segment,
+                                   data_[GetRightIndex(i)].segment);
+    }
   }
   ~SegmentTree() = default;
 
@@ -42,14 +50,11 @@ class SegmentTree {
     for (int i = num_of_elements_ - 1; begin != end && i < data_.size();
          ++begin, ++i) {
       data_[i].val = *begin;
-      data_[i].segment = {i, i};
     }
 
     for (int i = num_of_elements_ - 2; i >= 0; --i) {
       data_[i].val =
           func_f_(data_[GetLeftIndex(i)].val, data_[GetRightIndex(i)].val);
-      data_[i].segment = UniteSegm(data_[GetLeftIndex(i)].segment,
-                                   data_[GetRightIndex(i)].segment);
     }
   }
 
