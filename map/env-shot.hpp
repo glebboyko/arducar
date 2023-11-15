@@ -164,7 +164,7 @@ class SegmentTree {
 
   void Update(int node_ind) const {
     int left_son_val = data_[GetLeftIndex(node_ind)].val;
-    int right_son_val = data_[GetLeftIndex(node_ind)].val;
+    int right_son_val = data_[GetRightIndex(node_ind)].val;
     data_[node_ind].val = func_f_(left_son_val, right_son_val);
 
     if (node_ind != 0) {
