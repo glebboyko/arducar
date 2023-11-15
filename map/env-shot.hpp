@@ -32,7 +32,8 @@ class SegmentTree {
     num_of_elements_ =
         *std::lower_bound(logs_.begin(), logs_.end(), num_of_elements);
 
-    data_ = decltype(data_)(2 * num_of_elements_ - 1);
+    data_ = decltype(data_)(2 * num_of_elements_ - 1,
+                            {func_f_.GetNeutral(), func_g_.GetNeutral()});
   }
   ~SegmentTree() = default;
 
@@ -41,10 +42,14 @@ class SegmentTree {
     for (int i = num_of_elements_ - 1; begin != end && i < data_.size();
          ++begin, ++i) {
       data_[i].val = *begin;
+      data_[i].segment = {*begin, *begin};
     }
 
     for (int i = num_of_elements_ - 2; i >= 0; --i) {
-      data_[i].val = func_f_(data_[2 * i + 1].val, data_[2 * i + 2].val);
+      data_[i].val =
+          func_f_(data_[GetLeftIndex(i)].val, data_[GetRightIndex(i)].val);
+      data_[i].segment = UniteSegm(data_[GetLeftIndex(i)].segment,
+                                   data_[GetRightIndex(i)].segment);
     }
   }
 
@@ -56,15 +61,23 @@ class SegmentTree {
   }
 
  private:
-  struct Node {
-    mutable T val = T();
-    mutable T debt = T();
+  struct Segment {
+    T left = T();
+    T right = T();
   };
+
+  struct Node {
+    T val;
+    T debt;
+
+    Segment segment;
+  };
+  enum EnumIntersect { In, Intersect, NoIntersect };
 
   int num_of_elements_;
   std::vector<int> logs_;
 
-  std::vector<Node> data_;
+  mutable std::vector<Node> data_;
 
   FuncF func_f_;
   FuncG func_g_;
@@ -72,6 +85,24 @@ class SegmentTree {
   int GetLeftIndex(int index) const { return 2 * index + 1; }
   int GetRightIndex(int index) const { return 2 * index + 2; }
   int GetParentIndex(int index) const { return (index - 1) / 2; }
+  bool IsLeaf(int node_index) const {
+    return node_index >= num_of_elements_ - 1;
+  }
+
+  EnumIntersect IntersectSegm(const Segment& first,
+                              const Segment& second) const {
+    if (first.left > second.right || first.right < second.left) {
+      return NoIntersect;
+    }
+    if (first.left > second.left && first.right < second.right) {
+      return In;
+    }
+    return Intersect;
+  }
+  Segment UniteSegm(const Segment& first, const Segment& second) {
+    return {std::min(first.left, second.left),
+            std::max(first.right, second.right)};
+  }
 
   T Query(int node_index, T left, T right) const {
     PushDebt(node_index);
@@ -79,16 +110,15 @@ class SegmentTree {
     int left_son_index = GetLeftIndex(node_index);
     int right_son_index = GetRightIndex(node_index);
 
-    if (left > data_[right_son_index].val ||
-        right < data_[left_son_index].val) {
-      return T();
+    switch (IntersectSegm(data_[node_index].segment, {left, right})) {
+      case NoIntersect:
+        return func_f_.GetNeutral();
+      case In:
+        return data_[node_index].val;
+      case Intersect:
+        return func_f_(Query(left_son_index, left, right),
+                       Query(right_son_index, left, right));
     }
-    if (left <= data_[left_son_index].val &&
-        right >= data_[right_son_index].val) {
-      return data_[node_index].val;
-    }
-    return func_f_(Query(left_son_index, left, right),
-                   Query(right_son_index, left, right));
   }
 
   void PushDebt(int node_index) const {
@@ -96,25 +126,30 @@ class SegmentTree {
       return;
     }
 
+    int curr_debt = data_[node_index].debt;
+
+    int segm_left = data_[node_index].segment.left;
+    int segm_right = data_[node_index].segment.right;
+
+    /*data_[node_index].segment.left = func_g_(segm_left, curr_debt);
+    data_[node_index].segment.right = func_g_(segm_right, curr_debt);*/
+    data_[node_index].segment = {func_g_(segm_left, curr_debt),
+                                 func_g_(segm_right, curr_debt)};
+
     int left_son_index = GetLeftIndex(node_index);
     int right_son_index = GetRightIndex(node_index);
 
     if (IsLeaf(left_son_index)) {
-      data_[left_son_index].val =
-          func_g_(data_[left_son_index].val, data_[node_index].debt);
+      data_[left_son_index].val = func_g_(data_[left_son_index].val, curr_debt);
       data_[right_son_index].val =
-          func_g_(data_[right_son_index].val, data_[node_index].debt);
+          func_g_(data_[right_son_index].val, curr_debt);
     } else {
       data_[left_son_index].debt =
-          func_g_(data_[left_son_index].debt, data_[node_index].debt);
+          func_g_(data_[left_son_index].debt, curr_debt);
       data_[right_son_index].debt =
-          func_g_(data_[right_son_index].debt, data_[node_index].debt);
+          func_g_(data_[right_son_index].debt, curr_debt);
     }
-    data_[node_index].debt = T();
-  }
-
-  bool IsLeaf(int node_index) const {
-    return node_index >= num_of_elements_ - 1;
+    data_[node_index].debt = func_g_.GetNeutral();
   }
 
   void UpdateElem(int node_index) const {
