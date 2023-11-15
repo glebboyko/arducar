@@ -150,6 +150,12 @@ class SegmentTree {
   }
 
   void SegmUpdate(int curr_node, const T& val, int left, int right) {
+    if (IsLeaf(curr_node)) {
+      data_[curr_node].val = func_g_(data_[curr_node].val, val);
+      Update(GetParentIndex(curr_node));
+      return;
+    }
+
     switch (IntersectSegm(data_[curr_node].segment, {left, right})) {
       case NoIntersect:
         return;
