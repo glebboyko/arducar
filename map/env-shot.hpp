@@ -42,7 +42,7 @@ class SegmentTree {
     for (int i = num_of_elements_ - 1; begin != end && i < data_.size();
          ++begin, ++i) {
       data_[i].val = *begin;
-      data_[i].segment = {*begin, *begin};
+      data_[i].segment = {i, i};
     }
 
     for (int i = num_of_elements_ - 2; i >= 0; --i) {
