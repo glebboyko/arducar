@@ -60,11 +60,6 @@ class SegmentTree {
 
   T Query(int left, int right) const { return Query(0, left, right); }
 
-  T GetElem(int index) const {
-    UpdateElem(index);
-    return data_[index].val;
-  }
-
   void SegmUpdate(const T& val, int left, int right) {
     SegmUpdate(0, val, left, right);
   }
@@ -131,11 +126,10 @@ class SegmentTree {
   }
 
   void PushDebt(int node_index) const {
-    if (IsLeaf(node_index)) {
+    int curr_debt = data_[node_index].debt;
+    if (curr_debt == func_g_.GetNeutral()) {
       return;
     }
-
-    int curr_debt = data_[node_index].debt;
 
     int left_son_index = GetLeftIndex(node_index);
     int right_son_index = GetRightIndex(node_index);
@@ -144,6 +138,8 @@ class SegmentTree {
       data_[left_son_index].val = func_g_(data_[left_son_index].val, curr_debt);
       data_[right_son_index].val =
           func_g_(data_[right_son_index].val, curr_debt);
+
+      Update(node_index);
     } else {
       data_[left_son_index].debt =
           func_g_(data_[left_son_index].debt, curr_debt);
@@ -151,13 +147,6 @@ class SegmentTree {
           func_g_(data_[right_son_index].debt, curr_debt);
     }
     data_[node_index].debt = func_g_.GetNeutral();
-  }
-
-  void UpdateElem(int node_index) const {
-    if (node_index != 0) {
-      UpdateElem(GetParentIndex(node_index));
-    }
-    PushDebt(node_index);
   }
 
   void SegmUpdate(int curr_node, const T& val, int left, int right) {
@@ -170,6 +159,16 @@ class SegmentTree {
       case Intersect:
         SegmUpdate(GetLeftIndex(curr_node), val, left, right);
         SegmUpdate(GetRightIndex(curr_node), val, left, right);
+    }
+  }
+
+  void Update(int node_ind) const {
+    int left_son_val = data_[GetLeftIndex(node_ind)].val;
+    int right_son_val = data_[GetLeftIndex(node_ind)].val;
+    data_[node_ind].val = func_f_(left_son_val, right_son_val);
+
+    if (node_ind != 0) {
+      Update(GetParentIndex(node_ind));
     }
   }
 };
