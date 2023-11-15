@@ -53,21 +53,21 @@ class SegmentTree {
     }
   }
 
-  T Query(T left, T right) const { return Query(0, left, right); }
+  T Query(int left, int right) const { return Query(0, left, right); }
 
   T GetElem(int index) const {
     UpdateElem(index);
     return data_[index].val;
   }
 
-  void SegmUpdate(const T& val, const T& left, const T& right) {
+  void SegmUpdate(const T& val, int left, int right) {
     SegmUpdate(0, val, left, right);
   }
 
  private:
   struct Segment {
-    T left = T();
-    T right = T();
+    int left;
+    int right;
   };
 
   struct Node {
@@ -108,7 +108,7 @@ class SegmentTree {
             std::max(first.right, second.right)};
   }
 
-  T Query(int node_index, T left, T right) const {
+  T Query(int node_index, int left, int right) const {
     PushDebt(node_index);
 
     int left_son_index = GetLeftIndex(node_index);
@@ -131,14 +131,6 @@ class SegmentTree {
     }
 
     int curr_debt = data_[node_index].debt;
-
-    int segm_left = data_[node_index].segment.left;
-    int segm_right = data_[node_index].segment.right;
-
-    /*data_[node_index].segment.left = func_g_(segm_left, curr_debt);
-    data_[node_index].segment.right = func_g_(segm_right, curr_debt);*/
-    data_[node_index].segment = {func_g_(segm_left, curr_debt),
-                                 func_g_(segm_right, curr_debt)};
 
     int left_son_index = GetLeftIndex(node_index);
     int right_son_index = GetRightIndex(node_index);
@@ -163,7 +155,7 @@ class SegmentTree {
     PushDebt(node_index);
   }
 
-  void SegmUpdate(int curr_node, const T& val, const T& left, const T& right) {
+  void SegmUpdate(int curr_node, const T& val, int left, int right) {
     switch (IntersectSegm(data_[curr_node].segment, {left, right})) {
       case NoIntersect:
         return;
