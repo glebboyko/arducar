@@ -13,8 +13,8 @@ std::vector<int> GetNextLog(int max_num) {
   std::vector<int> nums;
   nums.push_back(1);
 
-  while (max_num > nums.front()) {
-    nums.push_back(nums.front() * 2);
+  while (max_num > nums.back()) {
+    nums.push_back(nums.back() * 2);
   }
 
   return nums;
