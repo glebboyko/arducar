@@ -186,6 +186,10 @@ struct CircleSegment {
   int deg_right;
   int radius;
 };
+bool operator!=(const CircleSegment& first, const CircleSegment& second) {
+  return first.deg_left != second.deg_left ||
+         first.deg_right != second.deg_right || first.radius != second.radius;
+}
 template <typename T>
 struct NumCont {
   T data;
@@ -222,10 +226,10 @@ bool operator==(const DiffCircleSegment& left, const DiffCircleSegment& right) {
 struct FuncG {
   CircleSegment operator()(CircleSegment left,
                            const DiffCircleSegment& right) const {
-    if (right.left.has_value() && right.left->radius > left.radius) {
+    if (right.left.has_value() && left != right.left.value()) {
       left = Cut(left, right.left.value());
     }
-    if (right.right.has_value() && right.right->radius > left.radius) {
+    if (right.right.has_value() && left != right.right.value()) {
       left = Cut(left, right.right.value());
     }
     return left;
