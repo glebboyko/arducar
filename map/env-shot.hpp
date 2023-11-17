@@ -285,10 +285,10 @@ struct FuncG {
                  ? CircleSegment{from.deg_left, from.deg_left, 0}
                  : CircleSegment{from.deg_right, from.deg_right, 0};
     }
-    if (from.deg_left <= del.deg_left) {
-      return {from.deg_left, del.deg_left, from.radius};
+    if (from.deg_left >= del.deg_left) {
+      return {del.deg_right, from.deg_right, from.radius};
     }
-    return {del.deg_right, from.deg_right, from.radius};
+    return {from.deg_left, del.deg_left, from.radius};
   }
   CircleSegment Unite(const CircleSegment& first,
                       const CircleSegment& second) const {
@@ -315,8 +315,8 @@ std::vector<CircleSegment> GetEnvShot(
                          : left.data.radius > right.data.radius;
             });
 
-  std::vector<int> degs_left(circle_segments.size());
-  std::vector<int> degs_right(circle_segments.size());
+  std::vector<int> degs_left(circle_segments.size());  //
+  std::vector<int> degs_right(circle_segments.size());  // Можно без доп памяти
   for (int i = 0; i < circle_segments.size(); ++i) {
     degs_left[i] = circle_segments[i].deg_left;
     degs_right[i] = circle_segments[i].deg_right;
@@ -336,9 +336,17 @@ std::vector<CircleSegment> GetEnvShot(
     int range_min = std::lower_bound(degs_right.begin(), degs_right.end(),
                                      real_segment.deg_left) -
                     degs_right.begin();
-    int range_max = std::upper_bound(degs_left.begin(), degs_left.end(),
+    if (degs_right[range_min] == real_segment.deg_left) {
+      range_min += 1;
+    }
+
+    int range_max = std::lower_bound(degs_left.begin(), degs_left.end(),
                                      real_segment.deg_right) -
                     degs_left.begin();
+    if (range_max == degs_left.size() ||
+        degs_left[range_max] >= real_segment.deg_right) {
+      range_max -= 1;
+    }
 
     if (range_max - range_min < 0) {
       continue;
