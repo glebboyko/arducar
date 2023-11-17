@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <optional>
 #include <vector>
 
 namespace Map {
@@ -20,10 +21,11 @@ std::vector<int> GetNextLog(int max_num) {
   return nums;
 }
 
-template <typename T, typename FuncF, typename FuncG>
-  requires requires(T val, FuncF func_f, FuncG func_g) {
-    func_f(val, val);
-    func_g(val, val);
+template <typename T, typename Y, typename FuncF, typename FuncG>
+  requires requires(T t_val, Y y_val, FuncF func_f, FuncG func_g) {
+    func_f(t_val, t_val);
+    func_g(t_val, y_val);
+    func_g(y_val, y_val);
   }
 class SegmentTree {
  public:
@@ -60,7 +62,7 @@ class SegmentTree {
 
   T Query(int left, int right) const { return Query(0, left, right); }
 
-  void SegmUpdate(const T& val, int left, int right) {
+  void SegmUpdate(const Y& val, int left, int right) {
     SegmUpdate(0, val, left, right);
   }
 
@@ -72,7 +74,7 @@ class SegmentTree {
 
   struct Node {
     T val;
-    T debt;
+    Y debt;
 
     Segment segment;
   };
@@ -126,7 +128,7 @@ class SegmentTree {
   }
 
   void PushDebt(int node_index) const {
-    int curr_debt = data_[node_index].debt;
+    Y curr_debt = data_[node_index].debt;
     if (curr_debt == func_g_.GetNeutral()) {
       return;
     }
@@ -149,7 +151,7 @@ class SegmentTree {
     data_[node_index].debt = func_g_.GetNeutral();
   }
 
-  void SegmUpdate(int curr_node, const T& val, int left, int right) {
+  void SegmUpdate(int curr_node, const Y& val, int left, int right) {
     if (IsLeaf(curr_node)) {
       data_[curr_node].val = func_g_(data_[curr_node].val, val);
       Update(GetParentIndex(curr_node));
@@ -169,8 +171,8 @@ class SegmentTree {
   }
 
   void Update(int node_ind) const {
-    int left_son_val = data_[GetLeftIndex(node_ind)].val;
-    int right_son_val = data_[GetRightIndex(node_ind)].val;
+    T left_son_val = data_[GetLeftIndex(node_ind)].val;
+    T right_son_val = data_[GetRightIndex(node_ind)].val;
     data_[node_ind].val = func_f_(left_son_val, right_son_val);
 
     if (node_ind != 0) {
@@ -178,5 +180,181 @@ class SegmentTree {
     }
   }
 };
+
+struct CircleSegment {
+  int deg_left;
+  int deg_right;
+  int radius;
+};
+template <typename T>
+struct NumCont {
+  T data;
+  int index;
+};
+
+auto NumerateSegments(const std::vector<CircleSegment>& env_shot) {
+  std::vector<NumCont<CircleSegment>> num_env_shot(env_shot.size());
+  for (int i = 0; i < num_env_shot.size(); ++i) {
+    num_env_shot[i] = {env_shot[i], i};
+  }
+  return num_env_shot;
+};
+
+struct FuncF {
+  CircleSegment operator()(const CircleSegment& left,
+                           const CircleSegment& right) const {
+    return {std::min(left.deg_left, right.deg_left),
+            std::max(left.deg_right, right.deg_right),
+            std::max(left.radius, right.radius)};
+  }
+  CircleSegment GetNeutral() const { return {INT32_MAX, INT32_MIN, 0}; }
+};
+
+struct DiffCircleSegment {
+  std::optional<CircleSegment> left;
+  std::optional<CircleSegment> right;
+};
+bool operator==(const DiffCircleSegment& left, const DiffCircleSegment& right) {
+  return !(left.left.has_value() || left.right.has_value() ||
+           right.left.has_value() || right.right.has_value());
+}
+
+struct FuncG {
+  CircleSegment operator()(CircleSegment left,
+                           const DiffCircleSegment& right) const {
+    if (right.left.has_value() && right.left->radius > left.radius) {
+      left = Cut(left, right.left.value());
+    }
+    if (right.right.has_value() && right.right->radius > left.radius) {
+      left = Cut(left, right.right.value());
+    }
+    return left;
+  }
+  DiffCircleSegment operator()(DiffCircleSegment left,
+                               DiffCircleSegment right) const {
+    std::vector<CircleSegment> segments;
+    if (left.left.has_value()) {
+      segments.push_back(left.left.value());
+    }
+    if (left.right.has_value()) {
+      segments.push_back(left.right.value());
+    }
+
+    if (right.left.has_value()) {
+      segments.push_back(right.left.value());
+    }
+    if (right.right.has_value()) {
+      segments.push_back(right.right.value());
+    }
+
+    std::sort(segments.begin(), segments.end(),
+              [](const CircleSegment& left, const CircleSegment& right) {
+                return left.deg_left <= right.deg_left;
+              });
+
+    for (int i = 1; i < segments.size(); ++i) {
+      if (IsIntersect(segments[i - 1], segments[i])) {
+        segments[i - 1] = Unite(segments[i - 1], segments[i]);
+        segments.erase(segments.cbegin() + i);
+        i -= 1;
+      }
+    }
+
+    switch (segments.size()) {
+      case 0:
+        return {{}, {}};
+      case 1:
+        return {segments[0], {}};
+      case 2:
+        return {segments[0], segments[1]};
+      default:
+        throw std::logic_error("More than two segments!");
+    }
+  }
+  DiffCircleSegment GetNeutral() const { return {{}, {}}; }
+
+ private:
+  CircleSegment Cut(const CircleSegment& from, const CircleSegment& del) const {
+    // Возможен при технической ошибке
+    if (from.deg_left >= del.deg_left && from.deg_right <= del.deg_right) {
+      return from.deg_left == del.deg_left
+                 ? CircleSegment{from.deg_left, from.deg_left, 0}
+                 : CircleSegment{from.deg_right, from.deg_right, 0};
+    }
+    if (from.deg_left <= del.deg_left) {
+      return {from.deg_left, del.deg_left, from.radius};
+    }
+    return {del.deg_right, from.deg_right, from.radius};
+  }
+  CircleSegment Unite(const CircleSegment& first,
+                      const CircleSegment& second) const {
+    return {std::min(first.deg_left, second.deg_left),
+            std::max(first.deg_right, second.deg_right),
+            std::max(first.radius, second.radius)};
+  }
+  bool IsIntersect(CircleSegment first, CircleSegment second) const {
+    if (first.deg_left > second.deg_left) {
+      std::swap(first, second);
+    }
+    return second.deg_left <= first.deg_right;
+  }
+};
+
+std::vector<CircleSegment> GetEnvShot(
+    std::vector<CircleSegment> circle_segments) {
+  auto sorted_segments = NumerateSegments(circle_segments);
+  std::sort(sorted_segments.begin(), sorted_segments.end(),
+            [](const NumCont<CircleSegment>& left,
+               const NumCont<CircleSegment>& right) {
+              return left.data.radius == right.data.radius
+                         ? left.data.deg_left < right.data.deg_left
+                         : left.data.radius > right.data.radius;
+            });
+
+  std::vector<int> degs_left(circle_segments.size());
+  std::vector<int> degs_right(circle_segments.size());
+  for (int i = 0; i < circle_segments.size(); ++i) {
+    degs_left[i] = circle_segments[i].deg_left;
+    degs_right[i] = circle_segments[i].deg_right;
+  }
+
+  SegmentTree<CircleSegment, DiffCircleSegment, FuncF, FuncG> segment_tree(
+      circle_segments.size());
+
+  segment_tree.SetData(circle_segments.begin(), circle_segments.end());
+
+  for (const auto& segment : sorted_segments) {
+    auto real_segment = segment_tree.Query(segment.index, segment.index);
+    if (real_segment.radius == 0) {
+      continue;
+    }
+
+    int range_min = std::lower_bound(degs_right.begin(), degs_right.end(),
+                                     real_segment.deg_left) -
+                    degs_right.begin();
+    int range_max = std::upper_bound(degs_left.begin(), degs_left.end(),
+                                     real_segment.deg_right) -
+                    degs_left.begin();
+
+    if (range_max - range_min < 0) {
+      continue;
+    }
+
+    DiffCircleSegment upd_val = {real_segment, {}};
+    segment_tree.SegmUpdate(upd_val, range_min, range_max);
+    segment_tree.Query(segment.index, segment.index);
+  }
+
+  std::vector<CircleSegment> result;
+  result.reserve(circle_segments.size());
+  for (int i = 0; i < circle_segments.size(); ++i) {
+    auto segment = segment_tree.Query(i, i);
+    if (segment.radius == 0) {
+      continue;
+    }
+    result.push_back(segment);
+  }
+  return result;
+}
 
 }  // namespace Map
