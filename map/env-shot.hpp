@@ -364,7 +364,7 @@ std::vector<CircleSegment> GetEnvShot(
     if (segment.radius == 0) {
       continue;
     }
-    result.push_back(segment);
+      result.push_back(segment);
   }
   return result;
 }
