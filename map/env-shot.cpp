@@ -14,7 +14,7 @@ double DegToRad(double deg) {
 
 std::vector<Primitives::Segment> EnvShotProcessing(
     const std::vector<LaserRangeInf>& raw_env_shot,
-    const Primitives::Primitive::Coord& kCenter) {
+    const Primitives::Coord& kCenter) {
   std::vector<Primitives::Segment> result;
   result.reserve(raw_env_shot.size());
 
@@ -36,11 +36,11 @@ std::vector<Primitives::Segment> EnvShotProcessing(
     int right_deg = (curr_deg + next_deg) / 2;
     int dist = raw_env_shot[i].dist;
 
-    Primitives::Primitive::Coord left_coord = {
+    Primitives::Coord left_coord = {
         static_cast<int>(kCenter.x + (cos(DegToRad(left_deg)) * dist)),
         static_cast<int>(kCenter.y + (sin(DegToRad(left_deg)) * dist))};
 
-    Primitives::Primitive::Coord right_coord = {
+    Primitives::Coord right_coord = {
         static_cast<int>(kCenter.x + (cos(DegToRad(right_deg)) * dist)),
         static_cast<int>(kCenter.y + (sin(DegToRad(right_deg)) * dist))};
 
@@ -50,7 +50,7 @@ std::vector<Primitives::Segment> EnvShotProcessing(
 }
 
 void DisplayImage(const std::vector<Primitives::Segment>& shot,
-                  const Primitives::Primitive::Coord& k_center,
+                  const Primitives::Coord& k_center,
                   const char* file_name) {
   ImageCreator image_creator(1, 1, k_center * 2);
 

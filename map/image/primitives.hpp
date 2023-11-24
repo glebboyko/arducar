@@ -3,19 +3,20 @@
 
 namespace Primitives {
 
+struct Coord {
+  int x;
+  int y;
+
+  Coord operator*(float coef) const {
+    Coord ret = *this;
+    ret.x *= coef;
+    ret.y *= coef;
+    return ret;
+  }
+};
+
 class Primitive {
  public:
-  struct Coord {
-    int x;
-    int y;
-
-    Coord operator*(float coef) const {
-      Coord ret = *this;
-      ret.x *= coef;
-      ret.y *= coef;
-      return ret;
-    }
-  };
   virtual std::list<Coord> GetGraphic(float px_per_mm,
                                       int line_width) const = 0;
 };

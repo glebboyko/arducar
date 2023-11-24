@@ -7,7 +7,7 @@
 class ImageCreator {
  public:
   ImageCreator(float px_per_mm, float line_width,
-               const Primitives::Primitive::Coord& size);
+               const Primitives::Coord& size);
 
   void Draw(const Primitives::Primitive& primitive);
 
@@ -16,7 +16,7 @@ class ImageCreator {
  private:
   float px_per_mm_;
   int line_width_;
-  Primitives::Primitive::Coord size_;
+  Primitives::Coord size_;
 
   std::vector<std::vector<bool>> map_;
 };

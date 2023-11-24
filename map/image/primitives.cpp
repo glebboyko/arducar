@@ -5,13 +5,13 @@ namespace Primitives {
 Segment::Segment(const Coord& a_point, const Coord& b_point)
     : a_point_(a_point), b_point_(b_point) {}
 
-Segment::Coord& Segment::GetA() { return a_point_; }
-Segment::Coord& Segment::GetB() { return b_point_; }
+Coord& Segment::GetA() { return a_point_; }
+Coord& Segment::GetB() { return b_point_; }
 
-const Segment::Coord& Segment::GetA() const { return a_point_; }
-const Segment::Coord& Segment::GetB() const { return b_point_; }
+const Coord& Segment::GetA() const { return a_point_; }
+const Coord& Segment::GetB() const { return b_point_; }
 
-std::list<Segment::Coord> Segment::GetGraphic(float px_per_mm,
+std::list<Coord> Segment::GetGraphic(float px_per_mm,
                                               int line_width) const {
   Segment normalized(a_point_ * px_per_mm, b_point_ * px_per_mm);
   return normalized.GetGraphic();
@@ -30,7 +30,7 @@ int Segment::GetBCoefficient() const {
          (b_point_.x - a_point_.x);
 }
 
-std::list<Segment::Coord> Segment::GetGraphic() const {
+std::list<Coord> Segment::GetGraphic() const {
   Segment normalized(a_point_, b_point_);
   if (normalized.a_point_.x == normalized.b_point_.x &&
           normalized.a_point_.y > normalized.b_point_.y ||
@@ -41,7 +41,7 @@ std::list<Segment::Coord> Segment::GetGraphic() const {
   float k_coefficient = normalized.GetKCoefficient();
   int b_coefficient = normalized.GetBCoefficient();
 
-  std::list<Segment::Coord> graphic;
+  std::list<Coord> graphic;
 
   if (k_coefficient == MAXFLOAT) {
     for (int y = normalized.a_point_.y; y <= normalized.b_point_.y; ++y) {
@@ -66,10 +66,10 @@ std::list<Segment::Coord> Segment::GetGraphic() const {
   return graphic;
 }
 
-std::list<Segment::Coord> Segment::GetGraphic(const Segment::Coord& a_point,
+std::list<Coord> Segment::GetGraphic(const Coord& a_point,
                                               int lenth, float k_coefficient,
                                               int b_coefficient) const {
-  std::list<Segment::Coord> graphic;
+  std::list<Coord> graphic;
 
   if (k_coefficient <= 1 && k_coefficient >= -1) {
     for (int x = a_point.x; x < a_point.x + lenth; ++x) {
