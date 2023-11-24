@@ -1,5 +1,7 @@
 #include "primitives.hpp"
 
+namespace Primitives {
+
 Segment::Segment(const Coord& a_point, const Coord& b_point)
     : a_point_(a_point), b_point_(b_point) {}
 
@@ -86,3 +88,5 @@ std::list<Segment::Coord> Segment::GetGraphic(const Segment::Coord& a_point,
   }
   return graphic;
 }
+
+}  // namespace Primitives

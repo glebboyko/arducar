@@ -1,6 +1,8 @@
 #pragma once
 #include <list>
 
+namespace Primitives {
+
 class Primitive {
  public:
   struct Coord {
@@ -43,3 +45,5 @@ class Segment : public Primitive {
   std::list<Coord> GetGraphic(const Coord& a_point, int lenth,
                               float k_coefficient, int b_coefficient) const;
 };
+
+}  // namespace Primitives
