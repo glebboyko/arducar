@@ -1,5 +1,7 @@
 #include "image-creator.hpp"
 
+using namespace Primitives;
+
 ImageCreator::ImageCreator(float px_per_mm, float line_width,
                            const Primitive::Coord& size)
     : px_per_mm_(px_per_mm), line_width_(line_width * px_per_mm_), size_(size) {
