@@ -15,4 +15,8 @@ std::vector<Primitives::Segment> EnvShotProcessing(
     const std::vector<LaserRangeInf>& raw_env_shot,
     const Primitives::Primitive::Coord& kCenter);
 
+void DisplayImage(const std::vector<Primitives::Segment>& shot,
+                  const Primitives::Primitive::Coord& k_center,
+                  const char* file_name);
+
 }  // namespace EnvShot

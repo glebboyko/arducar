@@ -1,5 +1,7 @@
 #include "env-shot.hpp"
 
+#include "image/image-creator.hpp"
+
 namespace EnvShot {
 
 const double kPi = 3.1415926535;
@@ -45,6 +47,21 @@ std::vector<Primitives::Segment> EnvShotProcessing(
     result.push_back(Primitives::Segment(left_coord, right_coord));
   }
   return result;
+}
+
+void DisplayImage(const std::vector<Primitives::Segment>& shot,
+                  const Primitives::Primitive::Coord& k_center,
+                  const char* file_name) {
+  ImageCreator image_creator(1, 1, k_center * 2);
+
+  for (int i = 0; i < shot.size(); ++i) {
+    image_creator.Draw(shot[i]);
+    Primitives::Segment connector(shot[i].GetB(),
+                                  shot[(i + 1) % shot.size()].GetA());
+    image_creator.Draw(connector);
+  }
+
+  image_creator.CreateImage(file_name);
 }
 
 }  // namespace EnvShot
