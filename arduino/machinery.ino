@@ -103,6 +103,25 @@ class Car {
   }
 };
 
+class CRSF {
+ public:
+  CRSF(int ch1, int ch2, int ch3, int ch4) {
+    ch[0] = ch1;
+    ch[1] = ch2;
+    ch[2] = ch3;
+    ch[3] = ch4;
+
+    for (int i = 0; i < 4; ++i) {
+      pinMode(ch[i], INPUT);
+    }
+  }
+
+  int GetValue(int ch_name) { return analogRead(ch[ch_name - 1]); }
+
+ private:
+  int ch[4];
+};
+
 void setup() {
 
 }
