@@ -2,21 +2,22 @@
 
 #include <vector>
 
-#include "image/primitives.hpp"
+#include "primitives.hpp"
 
-namespace EnvShot {
+class EnvShot {
+ public:
+  EnvShot(size_t size_x, size_t size_y, float px_per_mm);
 
-struct LaserRangeInf {
-  int deg;
-  int dist;
+  void AddMeasure(int deg, int mm_dist,
+                  const Primitives::Coord& mm_radar_coord);
+
+  void CreateImage(const char* image_name) const;
+
+ private:
+  struct PixelData {
+    bool is_empty;
+    int dist;
+  };
+
+  std::vector<std::vector<PixelData>> shot_;
 };
-
-std::vector<Primitives::Segment> EnvShotProcessing(
-    const std::vector<LaserRangeInf>& raw_env_shot,
-    const Primitives::Coord& kCenter);
-
-void DisplayImage(const std::vector<Primitives::Segment>& shot,
-                  const Primitives::Coord& k_center,
-                  const char* file_name);
-
-}  // namespace EnvShot
