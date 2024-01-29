@@ -1,3 +1,10 @@
 cmake-build-debug/
 .idea/
 tests/
+
+.clang-format
+.clang-tidy
+
+!libs/
+libs/*
+!libs/lib_builder.sh
