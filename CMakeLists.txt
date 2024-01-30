@@ -12,4 +12,4 @@ include_directories(map)
 
 #adding executables
 add_executable(arducar main.cpp
-        map/env-shot.hpp)
+        map/env-shot.cpp)
