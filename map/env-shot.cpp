@@ -42,6 +42,9 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       static_cast<int>(mm_radar_coord.y * px_per_mm_ +
                        (sin(DegToRad(right_deg)) * dist))};
 
+  static size_t call_num = 0;
+  call_num = (call_num + 1) % UINT64_MAX;
+
   Primitives::Segment border(left_coord, right_coord);
   for (const auto& border_coord : border.GetGraphic()) {
     Primitives::Segment generatrix(radar_coord, border_coord);
@@ -53,26 +56,38 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       }
 
       PixelData& pixel = map_[x][y];
+
+      if (pixel.call_identifier == call_num) {
+        continue;
+      }
+
       int px_dist = Primitives::GetDistance(radar_coord, {x, y});
 
-      if (pixel.is_border && pixel.dist <= px_dist) {
+      if (pixel.is_border && pixel.dist < px_dist) {
         valid = false;
         break;
-      } else if (pixel.dist > px_dist) {
+      }
+      if (pixel.dist >= px_dist) {
         pixel.dist = px_dist;
         pixel.is_border = false;
+        pixel.call_identifier = call_num;
       }
     }
 
     if (!valid) {
       continue;
     }
+    if (border_coord.x < 0 || border_coord.y < 0 ||
+        border_coord.x >= map_.size() || border_coord.y >= map_[0].size()) {
+      continue;
+    }
 
     double px_dist = Primitives::GetDistance(radar_coord, border_coord);
     PixelData& pixel = map_[border_coord.x][border_coord.y];
-    if (pixel.dist > px_dist) {
+    if (pixel.dist >= px_dist || pixel.call_identifier == call_num) {
       pixel.dist = px_dist;
       pixel.is_border = true;
+      pixel.call_identifier = call_num;
     }
   }
 }

@@ -17,6 +17,7 @@ class EnvShot {
   struct PixelData {
     bool is_border = false;
     int dist = INT_MAX;
+    size_t call_identifier = UINT64_MAX;
   };
 
   std::vector<std::vector<PixelData>> map_;
