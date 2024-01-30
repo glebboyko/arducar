@@ -6,9 +6,9 @@
 
 class EnvShot {
  public:
-  EnvShot(int32_t size_x, int32_t size_y, float px_per_mm);
+  EnvShot(int size_x, int size_y, float px_per_mm);
 
-  void AddMeasure(int deg, int32_t mm_dist,
+  void AddMeasure(double deg, int mm_dist, double deg_width,
                   const Primitives::Coord& mm_radar_coord);
 
   void CreateImage(const char* image_name) const;
@@ -16,9 +16,9 @@ class EnvShot {
  private:
   struct PixelData {
     bool is_border = false;
-    int32_t dist = INT32_MAX;
+    int dist = INT_MAX;
   };
 
-  std::vector<std::vector<PixelData>> shot_;
+  std::vector<std::vector<PixelData>> map_;
   float px_per_mm_;
 };
