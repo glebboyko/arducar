@@ -13,3 +13,5 @@ include_directories(map)
 #adding executables
 add_executable(arducar main.cpp
         map/env-shot.cpp)
+
+target_link_libraries(arducar PRIVATE ${CMAKE_SOURCE_DIR}/libs/built/lib_ptit.a)
