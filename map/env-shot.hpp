@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "image-creator.hpp"
 #include "primitives.hpp"
 
 class EnvShot {
@@ -13,6 +14,8 @@ class EnvShot {
 
   void CreateImage(const char* image_name) const;
 
+  static RGB GetRandomColor() noexcept;
+
  private:
   struct PixelData {
     bool is_border = false;
@@ -21,5 +24,7 @@ class EnvShot {
   };
 
   std::vector<std::vector<PixelData>> map_;
+
+  std::vector<RGB> sectors_color_;
   float px_per_mm_;
 };

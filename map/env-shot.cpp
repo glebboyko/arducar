@@ -1,5 +1,6 @@
 #include "env-shot.hpp"
 
+#include <random>
 #include <tuple>
 
 #include "image-creator.hpp"
@@ -20,9 +21,6 @@ double DegToRad(double deg) {
   double rad = deg * kPi / (kDegInCircle / 2);
   return rad;
 }
-
-void FulfillLine(std::vector<Primitives::Coord>& figure,
-                 const Primitives::Coord& right_coord) {}
 
 std::vector<Primitives::Coord> GetTriangle(Primitives::Coord a,
                                            Primitives::Coord b,
@@ -88,8 +86,8 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       static_cast<int>(mm_radar_coord.y * px_per_mm_ +
                        (sin(DegToRad(right_deg)) * dist))};
 
-  static size_t call_num = 0;
-  call_num = (call_num + 1) % UINT64_MAX;
+  size_t call_num = sectors_color_.size();
+  sectors_color_.push_back(GetRandomColor());
 
   auto border_graphic =
       Primitives::Segment(left_coord, right_coord).GetGraphic();
@@ -145,8 +143,35 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
 }
 
 void EnvShot::CreateImage(const char* image_name) const {
-  ::CreateImage(
-      image_name, map_, map_.size(), map_[0].size(), [](const PixelData& data) {
-        return data.is_border ? std::tuple(0, 0, 0) : std::tuple(255, 255, 255);
-      });
+  ::CreateImage(image_name, map_, map_.size(), map_[0].size(),
+                [this](const PixelData& data) {
+                  if (data.call_identifier == UINT64_MAX) {
+                    return RGB{255, 255, 255};
+                  }
+                  if (data.is_border) {
+                    return RGB{0, 0, 0};
+                  }
+                  return sectors_color_[data.call_identifier];
+                });
+}
+
+RGB EnvShot::GetRandomColor() noexcept {
+  static bool uninitialized = true;
+  if (uninitialized) {
+    srand(time(NULL));
+    uninitialized = false;
+  }
+
+  RGB color;
+  color.red = rand() % (RGB::kMaxColor / 2) + (RGB::kMaxColor / 2);
+  color.green = rand() % (RGB::kMaxColor / 2) + (RGB::kMaxColor / 2);
+  color.blue = rand() % (RGB::kMaxColor / 2) + (RGB::kMaxColor / 2);
+
+  short color_sum = color.red + color.green + color.blue;
+  if (color_sum > RGB::kMaxColor * 3 - 90) {
+    short diff = color_sum - (RGB::kMaxColor + 90);
+    color.red -= diff, color.green -= diff, color.blue -= diff;
+  }
+
+  return color;
 }
