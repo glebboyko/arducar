@@ -105,21 +105,26 @@ class Car {
 
 class CRSF {
  public:
-  CRSF(int ch1, int ch2, int ch3, int ch4) {
+  CRSF(int ch1, int ch2 = 0, int ch3 = 0, int ch4 = 0, int ch5 = 0, int ch6 = 0) {
     ch[0] = ch1;
     ch[1] = ch2;
     ch[2] = ch3;
     ch[3] = ch4;
+    ch[4] = ch5;
+    ch[5] = ch6;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 6; ++i) {
       pinMode(ch[i], INPUT);
     }
   }
 
-  int GetValue(int ch_name) { return analogRead(ch[ch_name - 1]); }
+  int GetValue(int ch_name) {
+    long val = pulseIn(ch[ch_name - 1], HIGH) - 980 - 516;
+    return (double)(val * 1023) / 516;
+  }
 
  private:
-  int ch[4];
+  int ch[6];
 };
 
 void setup() {
