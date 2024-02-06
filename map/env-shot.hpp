@@ -7,10 +7,11 @@
 
 class EnvShot {
  public:
-  EnvShot(int size_x, int size_y, float px_per_mm);
+  EnvShot(int size_x, int size_y, float px_per_mm, int border_thickness = 1);
 
   void AddMeasure(double deg, int mm_dist, double deg_width,
-                  const Primitives::Coord& mm_radar_coord);
+                  const Primitives::Coord& mm_radar_coord,
+                  unsigned char* bitmap = nullptr);
 
   void CreateImage(const char* image_name) const;
 
@@ -27,4 +28,11 @@ class EnvShot {
 
   std::vector<RGB> sectors_color_;
   float px_per_mm_;
+  int border_thickness_;
+
+  void SetPixel(unsigned char* bitmap, int x, int y, RGB color) const noexcept;
+
+  bool IsPixelInMap(int x, int y) const noexcept;
 };
+
+double DegToRad(double deg);

@@ -1,13 +1,14 @@
 #include "env-shot.hpp"
 
+#include <iostream>
 #include <random>
 #include <tuple>
 
 #include "image-creator.hpp"
 #include "primitives.hpp"
 
-EnvShot::EnvShot(int size_x, int size_y, float px_per_mm)
-    : px_per_mm_(px_per_mm) {
+EnvShot::EnvShot(int size_x, int size_y, float px_per_mm, int border_thickness)
+    : px_per_mm_(px_per_mm), border_thickness_(border_thickness) {
   map_.resize(size_x);
   for (int32_t i = 0; i < size_y; ++i) {
     map_[i].resize(size_y);
@@ -66,7 +67,8 @@ std::vector<Primitives::Coord> GetTriangle(Primitives::Coord a,
 }
 
 void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
-                         const Primitives::Coord& mm_radar_coord) {
+                         const Primitives::Coord& mm_radar_coord,
+                         unsigned char* bitmap) {
   double left_deg = deg - (deg_width / 2);
   double right_deg = deg + (deg_width / 2);
 
@@ -99,7 +101,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
     bool valid = true;
 
     for (const auto& [x, y] : GetTriangle(radar_coord, border[0], border[1])) {
-      if (x < 0 || y < 0 || x >= map_.size() || y >= map_[0].size()) {
+      if (!IsPixelInMap(x, y)) {
         continue;
       }
 
@@ -119,6 +121,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
         pixel.dist = px_dist;
         pixel.is_border = false;
         pixel.call_identifier = call_num;
+        SetPixel(bitmap, x, y, sectors_color_.back());
       }
     }
 
@@ -126,17 +129,30 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       continue;
     }
     for (int i = 0; i < 2; ++i) {
-      if (border[i].x < 0 || border[i].y < 0 || border[i].x >= map_.size() ||
-          border[i].y >= map_[0].size()) {
+      if (!IsPixelInMap(border[i].x, border[i].y)) {
         continue;
       }
-
       double px_dist = Primitives::GetDistance(radar_coord, border[i]);
       PixelData& pixel = map_[border[i].x][border[i].y];
       if (pixel.dist >= px_dist || pixel.call_identifier == call_num) {
-        pixel.dist = px_dist;
-        pixel.is_border = true;
-        pixel.call_identifier = call_num;
+        for (int xb = border[i].x - (border_thickness_ / 2);
+             xb <=
+             border[i].x + (border_thickness_ / 2) + (border_thickness_ % 2);
+             ++xb) {
+          for (int yb = border[i].y - (border_thickness_ / 2);
+               yb <=
+               border[i].y + (border_thickness_ / 2) + (border_thickness_ % 2);
+               ++yb) {
+            if (!IsPixelInMap(xb, yb)) {
+              continue;
+            }
+            pixel = map_[xb][yb];
+            pixel.dist = px_dist;
+            pixel.is_border = true;
+            pixel.call_identifier = call_num;
+            SetPixel(bitmap, xb, yb, {0, 0, 0});
+          }
+        }
       }
     }
   }
@@ -174,4 +190,18 @@ RGB EnvShot::GetRandomColor() noexcept {
   }
 
   return color;
+}
+
+void EnvShot::SetPixel(unsigned char* bitmap, int x, int y,
+                       RGB color) const noexcept {
+  if (bitmap != nullptr) {
+    long pos = (map_.size() * y + x) * 3;
+    bitmap[pos] = color.red;
+    bitmap[pos + 1] = color.green;
+    bitmap[pos + 2] = color.blue;
+  }
+}
+
+bool EnvShot::IsPixelInMap(int x, int y) const noexcept {
+  return x >= 0 && y >= 0 && x < map_.size() && y < map_[0].size();
 }
