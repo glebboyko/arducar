@@ -19,11 +19,11 @@ include_directories(libs/clogger_lib/include)
 include_directories(libs/primitives-to-image-translator/include)
 
 include_directories(map)
-include_directories(frontend/frame)
+include_directories(visual_client/frame)
 
 #adding executables
-add_executable(${PROJECT_NAME} main.cpp
-        frontend/frame/frame.cpp
+add_executable(${PROJECT_NAME} visual_client/main.cpp
+        visual_client/frame/frame.cpp
         map/env-shot.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/libs/built/lib_ptit.a)

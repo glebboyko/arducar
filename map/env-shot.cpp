@@ -23,26 +23,25 @@ double DegToRad(double deg) {
   return rad;
 }
 
-std::vector<Primitives::Coord> GetTriangle(Primitives::Coord a,
-                                           Primitives::Coord b,
-                                           Primitives::Coord c) {
-  auto ab_graph = Primitives::Segment(a, b).GetGraphic();
-  auto ac_graph = Primitives::Segment(a, c).GetGraphic();
-  auto bc_graph = Primitives::Segment(b, c).GetGraphic();
+std::vector<PTIT::Coord> GetTriangle(PTIT::Coord a, PTIT::Coord b,
+                                     PTIT::Coord c) {
+  auto ab_graph = PTIT::Segment(a, b).GetGraphic();
+  auto ac_graph = PTIT::Segment(a, c).GetGraphic();
+  auto bc_graph = PTIT::Segment(b, c).GetGraphic();
 
-  std::vector<Primitives::Coord> border;
+  std::vector<PTIT::Coord> border;
   border.reserve(ab_graph.size() + ac_graph.size() + bc_graph.size());
   border.insert(border.cend(), ab_graph.begin(), ab_graph.end());
   border.insert(border.cend(), ac_graph.begin(), ac_graph.end());
   border.insert(border.cend(), bc_graph.begin(), bc_graph.end());
 
-  std::sort(
-      border.begin(), border.end(),
-      [](const Primitives::Coord& first, const Primitives::Coord& second) {
-        return first.y != second.y ? first.y < second.y : first.x < second.x;
-      });
+  std::sort(border.begin(), border.end(),
+            [](const PTIT::Coord& first, const PTIT::Coord& second) {
+              return first.y != second.y ? first.y < second.y
+                                         : first.x < second.x;
+            });
 
-  std::vector<Primitives::Coord> triangle;
+  std::vector<PTIT::Coord> triangle;
   triangle.reserve(border.size());
   for (const auto& coord : border) {
     if (triangle.empty() || triangle.back().y != coord.y) {
@@ -53,36 +52,35 @@ std::vector<Primitives::Coord> GetTriangle(Primitives::Coord a,
       triangle.push_back({triangle.back().x + 1, triangle.back().y});
     }
   }
-  std::sort(
-      triangle.begin(), triangle.end(),
-      [a](const Primitives::Coord& first, const Primitives::Coord& second) {
-        auto f_dist = Primitives::GetDistance(a, first);
-        auto s_dist = Primitives::GetDistance(a, second);
-        if (f_dist != s_dist) {
-          return f_dist < s_dist;
-        }
-        return first.y != second.y ? first.y < second.y : first.x < second.x;
-      });
+  std::sort(triangle.begin(), triangle.end(),
+            [a](const PTIT::Coord& first, const PTIT::Coord& second) {
+              auto f_dist = PTIT::GetDistance(a, first);
+              auto s_dist = PTIT::GetDistance(a, second);
+              if (f_dist != s_dist) {
+                return f_dist < s_dist;
+              }
+              return first.y != second.y ? first.y < second.y
+                                         : first.x < second.x;
+            });
   return triangle;
 }
 
 void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
-                         const Primitives::Coord& mm_radar_coord,
+                         const PTIT::Coord& mm_radar_coord,
                          unsigned char* bitmap) {
   double left_deg = deg - (deg_width / 2);
   double right_deg = deg + (deg_width / 2);
 
   double dist = static_cast<double>(mm_dist) * px_per_mm_;
 
-  Primitives::Coord radar_coord = mm_radar_coord * px_per_mm_;
+  PTIT::Coord radar_coord = mm_radar_coord * px_per_mm_;
 
-  Primitives::Coord left_coord = {
-      static_cast<int>(mm_radar_coord.x * px_per_mm_ +
-                       (cos(DegToRad(left_deg)) * dist)),
-      static_cast<int>(mm_radar_coord.y * px_per_mm_ +
-                       (sin(DegToRad(left_deg)) * dist))};
+  PTIT::Coord left_coord = {static_cast<int>(mm_radar_coord.x * px_per_mm_ +
+                                             (cos(DegToRad(left_deg)) * dist)),
+                            static_cast<int>(mm_radar_coord.y * px_per_mm_ +
+                                             (sin(DegToRad(left_deg)) * dist))};
 
-  Primitives::Coord right_coord = {
+  PTIT::Coord right_coord = {
       static_cast<int>(mm_radar_coord.x * px_per_mm_ +
                        (cos(DegToRad(right_deg)) * dist)),
       static_cast<int>(mm_radar_coord.y * px_per_mm_ +
@@ -91,12 +89,11 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
   size_t call_num = sectors_color_.size();
   sectors_color_.push_back(GetRandomColor());
 
-  auto border_graphic =
-      Primitives::Segment(left_coord, right_coord).GetGraphic();
+  auto border_graphic = PTIT::Segment(left_coord, right_coord).GetGraphic();
   for (auto iter = border_graphic.begin(); iter != --border_graphic.end();
        ++iter) {
     auto tmp_iter = iter;
-    Primitives::Coord border[2] = {*tmp_iter, *(++tmp_iter)};
+    PTIT::Coord border[2] = {*tmp_iter, *(++tmp_iter)};
 
     bool valid = true;
 
@@ -111,7 +108,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
         continue;
       }
 
-      int px_dist = Primitives::GetDistance(radar_coord, {x, y});
+      int px_dist = PTIT::GetDistance(radar_coord, {x, y});
 
       if (pixel.is_border && pixel.dist < px_dist) {
         valid = false;
@@ -132,7 +129,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       if (!IsPixelInMap(border[i].x, border[i].y)) {
         continue;
       }
-      double px_dist = Primitives::GetDistance(radar_coord, border[i]);
+      double px_dist = PTIT::GetDistance(radar_coord, border[i]);
       PixelData& pixel = map_[border[i].x][border[i].y];
       if (pixel.dist >= px_dist || pixel.call_identifier == call_num) {
         for (int xb = border[i].x - (border_thickness_ / 2);
@@ -159,33 +156,34 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
 }
 
 void EnvShot::CreateImage(const char* image_name) const {
-  ::CreateImage(image_name, map_, map_.size(), map_[0].size(),
+  ::PTIT::CreateImage(image_name, map_, map_.size(), map_[0].size(),
                 [this](const PixelData& data) {
                   if (data.call_identifier == UINT64_MAX) {
-                    return RGB{255, 255, 255};
+                    return PTIT::RGB{255, 255, 255};
                   }
                   if (data.is_border) {
-                    return RGB{0, 0, 0};
+                    return PTIT::RGB{0, 0, 0};
                   }
                   return sectors_color_[data.call_identifier];
                 });
 }
 
-RGB EnvShot::GetRandomColor() noexcept {
+PTIT::RGB EnvShot::GetRandomColor() noexcept {
   static bool uninitialized = true;
   if (uninitialized) {
     srand(time(NULL));
     uninitialized = false;
   }
 
-  RGB color;
-  color.red = rand() % (RGB::kMaxColor / 2) + (RGB::kMaxColor / 2);
-  color.green = rand() % (RGB::kMaxColor / 2) + (RGB::kMaxColor / 2);
-  color.blue = rand() % (RGB::kMaxColor / 2) + (RGB::kMaxColor / 2);
+  PTIT::RGB color;
+  color.red = rand() % (PTIT::RGB::kMaxColor / 2) + (PTIT::RGB::kMaxColor / 2);
+  color.green =
+      rand() % (PTIT::RGB::kMaxColor / 2) + (PTIT::RGB::kMaxColor / 2);
+  color.blue = rand() % (PTIT::RGB::kMaxColor / 2) + (PTIT::RGB::kMaxColor / 2);
 
   short color_sum = color.red + color.green + color.blue;
-  if (color_sum > RGB::kMaxColor * 3 - 90) {
-    short diff = color_sum - (RGB::kMaxColor + 90);
+  if (color_sum > PTIT::RGB::kMaxColor * 3 - 90) {
+    short diff = color_sum - (PTIT::RGB::kMaxColor + 90);
     color.red -= diff, color.green -= diff, color.blue -= diff;
   }
 
@@ -193,7 +191,7 @@ RGB EnvShot::GetRandomColor() noexcept {
 }
 
 void EnvShot::SetPixel(unsigned char* bitmap, int x, int y,
-                       RGB color) const noexcept {
+                       PTIT::RGB color) const noexcept {
   if (bitmap != nullptr) {
     long pos = (map_.size() * y + x) * 3;
     bitmap[pos] = color.red;
