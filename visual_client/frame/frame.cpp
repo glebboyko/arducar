@@ -124,16 +124,25 @@ Frame::Frame(wxSize map_size)
   wxPoint center_position = {window_size.x / 2, window_size.y / 2};
   base_ = Layer(FillImage(window_size, {229, 236, 233}), this, window_size,
                 center_position);
+
   radar_scans_ = Layer(FillImage(map_size, {255, 255, 255}, 0), this,
                        window_size, center_position);
+
   working_space_ = Layer(FillImage(map_size, {68, 175, 105}, 50), this,
                          window_size, center_position);
+  working_space_.Show(false);
+
   route_ = Layer(FillImage(map_size, {252, 171, 16}, 0), this, window_size,
                  center_position);
+  route_.Show(false);
+
   borders_ = Layer(FillImage(map_size, {0, 0, 0}, 0), this, window_size,
                    center_position);
+
   dest_mark_ = Layer(wxImage("../dest_mark.png", wxBITMAP_TYPE_PNG), this,
                      kDestMarkSize);
+  dest_mark_.Show(false);
+
   position_ = Layer(wxImage("../arducar_position.png", wxBITMAP_TYPE_PNG), this,
                     kPosiSize);
 
