@@ -7,8 +7,15 @@
 #include "image-creator.hpp"
 #include "primitives.hpp"
 
-EnvShot::EnvShot(int size_x, int size_y, float px_per_mm, int border_thickness)
-    : px_per_mm_(px_per_mm), border_thickness_(border_thickness) {
+EnvShot::EnvShot(int size_x, int size_y, float px_per_mm, int border_thickness,
+                 unsigned char* bitmap_scan_color,
+                 unsigned char* bitmap_scan_alpha,
+                 unsigned char* bitmap_border_alpha)
+    : px_per_mm_(px_per_mm),
+      border_thickness_(border_thickness),
+      bitmap_scan_color_(bitmap_scan_color),
+      bitmap_scan_alpha_(bitmap_scan_alpha),
+      bitmap_border_alpha_(bitmap_border_alpha) {
   map_.resize(size_x);
   for (int32_t i = 0; i < size_y; ++i) {
     map_[i].resize(size_y);
@@ -66,8 +73,8 @@ std::vector<PTIT::Coord> GetTriangle(PTIT::Coord a, PTIT::Coord b,
 }
 
 void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
-                         const PTIT::Coord& mm_radar_coord,
-                         unsigned char* bitmap) {
+                         const PTIT::Coord& mm_radar_coord) {
+  deg *= -1;
   double left_deg = deg - (deg_width / 2);
   double right_deg = deg + (deg_width / 2);
 
@@ -118,7 +125,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
         pixel.dist = px_dist;
         pixel.is_border = false;
         pixel.call_identifier = call_num;
-        SetPixel(bitmap, x, y, sectors_color_.back());
+        SetPixel(x, y, sectors_color_.back());
       }
     }
 
@@ -147,7 +154,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
             pixel.dist = px_dist;
             pixel.is_border = true;
             pixel.call_identifier = call_num;
-            SetPixel(bitmap, xb, yb, {0, 0, 0});
+            SetPixel(xb, yb, {0, 0, 0});
           }
         }
       }
@@ -157,15 +164,15 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
 
 void EnvShot::CreateImage(const char* image_name) const {
   ::PTIT::CreateImage(image_name, map_, map_.size(), map_[0].size(),
-                [this](const PixelData& data) {
-                  if (data.call_identifier == UINT64_MAX) {
-                    return PTIT::RGB{255, 255, 255};
-                  }
-                  if (data.is_border) {
-                    return PTIT::RGB{0, 0, 0};
-                  }
-                  return sectors_color_[data.call_identifier];
-                });
+                      [this](const PixelData& data) {
+                        if (data.call_identifier == UINT64_MAX) {
+                          return PTIT::RGB{255, 255, 255};
+                        }
+                        if (data.is_border) {
+                          return PTIT::RGB{0, 0, 0};
+                        }
+                        return sectors_color_[data.call_identifier];
+                      });
 }
 
 PTIT::RGB EnvShot::GetRandomColor() noexcept {
@@ -190,13 +197,24 @@ PTIT::RGB EnvShot::GetRandomColor() noexcept {
   return color;
 }
 
-void EnvShot::SetPixel(unsigned char* bitmap, int x, int y,
-                       PTIT::RGB color) const noexcept {
-  if (bitmap != nullptr) {
-    long pos = (map_.size() * y + x) * 3;
-    bitmap[pos] = color.red;
-    bitmap[pos + 1] = color.green;
-    bitmap[pos + 2] = color.blue;
+void EnvShot::SetPixel(int x, int y, PTIT::RGB color) const noexcept {
+  if (bitmap_scan_color_ == nullptr || bitmap_scan_alpha_ == nullptr ||
+      bitmap_border_alpha_ == nullptr) {
+    return;
+  }
+
+  long alpha_pos = map_.size() * y + x;
+  long scan_pos = alpha_pos * 3;
+
+  if (color == PTIT::RGB{0, 0, 0}) {
+    bitmap_border_alpha_[alpha_pos] = 255;
+  } else {
+    bitmap_scan_color_[scan_pos] = color.red;
+    bitmap_scan_color_[scan_pos + 1] = color.green;
+    bitmap_scan_color_[scan_pos + 2] = color.blue;
+    bitmap_scan_alpha_[alpha_pos] = 255;
+
+    bitmap_border_alpha_[alpha_pos] = 0;
   }
 }
 
