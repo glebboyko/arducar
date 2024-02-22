@@ -3,13 +3,13 @@
 
 #include <any>
 #include <iostream>
+#include <tcp-client.hpp>
 #include <thread>
 #include <vector>
 
 #include "env-shot.hpp"
 #include "frame.hpp"
 #include "support.hpp"
-#include "tcp-client.hpp"
 
 std::vector<std::string> Split(const std::string& string,
                                const char& delimiter) {
@@ -119,12 +119,13 @@ class MainThread : public wxThread {
   }
 
   virtual void* Entry() {
-    auto* bitmap_scan = frame_->GetRadarScans().GetImage().GetData();
-    auto* bitmap_scan_alpha = frame_->GetRadarScans().GetImage().GetAlpha();
-    auto* bitmap_border = frame_->GetBorders().GetImage().GetAlpha();
-
-    EnvShot map(map_size_.x, map_size_.y, 1, 4, bitmap_scan, bitmap_scan_alpha,
-                bitmap_border);
+    BM::VisualBitmap bitmap(map_size_.x, map_size_.y,
+                            frame_->GetRadarScans().GetImage().GetData(),
+                            frame_->GetRadarScans().GetImage().GetAlpha(),
+                            frame_->GetBorders().GetImage().GetAlpha(),
+                            frame_->GetWorkingSpace().GetImage().GetAlpha(),
+                            frame_->GetRoute().GetImage().GetAlpha());
+    EnvShot map(bitmap, 1, 4);
 
     while (true) {
       auto [query_type, query_val] = GetQuery(tcp_client_);
@@ -179,7 +180,7 @@ class App : public wxApp {
     TCP::TcpClient client;
     try {
       client.Connect(SPRT::kServerAddress.c_str(), SPRT::kTcpPort);
-      client.Send(SPRT::Visualizer);
+      client.Send(static_cast<int>(SPRT::Visualizer));
       if (!client.Receive(map_size.x, map_size.y)) {
         throw TCP::TcpException(TCP::TcpException::Receiving, TCP::LoggerCap);
       }
