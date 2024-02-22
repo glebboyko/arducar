@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME} main.cpp
         frame/frame.cpp
         ../map/source/bitmap.cpp
         ../map/source/env-shot.cpp
+        ../map/source/map_analyzer.cpp
         ../connection_support/support.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../libs/built/lib_ptit.a)

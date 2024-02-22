@@ -14,6 +14,7 @@ include_directories(../map/include)
 #adding executables
 add_executable(${PROJECT_NAME}
         ../map/source/bitmap.cpp
-        ../map/source/env-shot.cpp)
+        ../map/source/env-shot.cpp
+        ../map/source/map_analyzer.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/libs/built/lib_ptit.a)
