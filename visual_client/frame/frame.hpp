@@ -3,8 +3,8 @@
 #include <wx/wx.h>
 
 #include "env-shot.hpp"
-#include "primitives.hpp"
-#include "tcp-client.hpp"
+#include <primitives.hpp>
+#include <tcp-client.hpp>
 
 namespace IF {
 
