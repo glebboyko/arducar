@@ -1,13 +1,13 @@
 #!/bin/bash
 
-git_libs=(c_tcp_lib clogger_lib primitives-to-image-translator)
+git_libs=(c_tcp_lib clogger_lib ptit_lib)
 
 libs_dir="$(pwd)/libs"
 
 rm -rf "${libs_dir}/built"
 mkdir "${libs_dir}/built"
 
-git_link="https://github.com/glebboyko"
+git_link="https://git.lafresa.ru/glebboiko"
 for lib in ${git_libs[*]}
 do
   rm -rf "${libs_dir}/${lib}"
