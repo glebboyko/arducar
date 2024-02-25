@@ -15,7 +15,7 @@ include_directories(../libs/c_tcp_lib/cpp/include)
 include_directories(../libs/clogger_lib/include)
 include_directories(../libs/ptit_lib/include)
 
-include_directories(../map/include)
+include_directories(../map)
 include_directories(../connection_support)
 include_directories(frame)
 

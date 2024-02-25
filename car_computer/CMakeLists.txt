@@ -11,7 +11,7 @@ include_directories(../libs/ptit_lib/include)
 
 include_directories(include)
 
-include_directories(../map/include)
+include_directories(../map)
 
 #adding executables
 add_executable(${PROJECT_NAME}
