@@ -9,10 +9,14 @@ include_directories(../libs/c_tcp_lib/cpp/include)
 include_directories(../libs/clogger_lib/include)
 include_directories(../libs/ptit_lib/include)
 
+include_directories(include)
+
 include_directories(../map/include)
 
 #adding executables
 add_executable(${PROJECT_NAME}
+        source/arduino_communicator.cpp
+        source/hardware_processor.cpp
         ../map/source/bitmap.cpp
         ../map/source/env-shot.cpp
         ../map/source/map_analyzer.cpp)
