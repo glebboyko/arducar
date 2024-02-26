@@ -11,12 +11,16 @@ include_directories(../libs/ptit_lib/include)
 
 include_directories(include)
 
+include_directories(../connection_support)
 include_directories(../map)
 
 #adding executables
 add_executable(${PROJECT_NAME}
+        source/main_loop.cpp
         source/arduino_communicator.cpp
+        source/client_communicator.cpp
         source/hardware_processor.cpp
+        ../connection_support/support.cpp
         ../map/source/bitmap.cpp
         ../map/source/env-shot.cpp
         ../map/source/map_analyzer.cpp)
