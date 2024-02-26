@@ -13,6 +13,7 @@ const int kDefaultAngularSpeed = 45;    // deg / s
 
 const int kCarWidth = 210;      // mm
 const float kWheelLen = 210.5;  // mm
+const int kRadarRadius = 47;    // mm
 
 const std::chrono::milliseconds kFailSleep(100);
 

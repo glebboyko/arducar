@@ -110,6 +110,11 @@ std::list<std::pair<float, int>> Car::Scan() {
       break;
     }
 
+    data.value().second -= kRadarRadius;
+    if (data.value().second < 0) {
+      data.value().second = 0;
+    }
+
     scan.push_back(data.value());
   }
 
