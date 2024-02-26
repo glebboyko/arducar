@@ -54,6 +54,6 @@ class Car {
       started_moving_;
 };
 
-void RouteMove(Car& car, const std::list<PTIT::Coord>& route);
+void RouteMove(Car& car, const std::list<PTIT::Coord>& route, int mm_per_px);
 
 }  // namespace CM

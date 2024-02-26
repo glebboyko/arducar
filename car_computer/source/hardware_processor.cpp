@@ -117,9 +117,9 @@ std::list<std::pair<float, int>> Car::Scan() {
 }
 
 /*------------------------------ free functions ------------------------------*/
-void RouteMove(Car& car, const std::list<PTIT::Coord>& route) {
+void RouteMove(Car& car, const std::list<PTIT::Coord>& route, int mm_per_px) {
   for (auto iter = std::next(route.begin()); iter != route.end(); ++iter) {
-    car.HeadTo(*iter);
+    car.HeadTo(*iter * mm_per_px);
     while (car.IsMoving()) {
       std::this_thread::sleep_for(kFailSleep);
     }
