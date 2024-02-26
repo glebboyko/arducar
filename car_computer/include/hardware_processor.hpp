@@ -42,7 +42,7 @@ class Car {
 
  private:
   mutable AC::ArduinoCommunicator communicator_;
-  Movement movement_ = Movement(communicator_);
+  mutable Movement movement_ = Movement(communicator_);
 
   mutable PTIT::Coord position_;
   mutable float angle_ = 0;

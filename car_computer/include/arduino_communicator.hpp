@@ -1,77 +1,52 @@
 #pragma once
 
-#include <string>
 #include <tcp-server.hpp>
-#include <memory>
 
 namespace AC {
 
 const int kArduinoPort = 44'440;
 
-enum MessageType { TCarMove, RCarMoveFinish, TRadarScan, RRadarScan };
-
-class Message {
- protected:
-  virtual void PrintData(std::ostream&) const;
-  virtual void ScanData(std::istream&);
-
-  friend std::ostream& operator<<(std::ostream&, const Message&);
-  friend std::istream& operator>>(std::istream&, Message&);
-};
-
-class CTCarMove : public Message {
- public:
-  CTCarMove(int dist_left, int dist_right, int ms_time);
-
- private:
-  virtual void PrintData(std::ostream&) const override;
-
-  std::string data_;
-};
-
-class CRCarMoveFinish : public Message {
- public:
-  CRCarMoveFinish() = default;
-
- private:
-  virtual void ScanData(std::istream&) override;
-};
-
-class CTRadarScan : public Message {
- public:
-  CTRadarScan() = default;
-
- private:
-  virtual void PrintData(std::ostream&) const override;
-};
-
-class CRRadarScan : public Message {
- public:
-  CRRadarScan() = default;
-
-  bool IsTerm() const;
-  std::pair<float, int> GetData() const;
-
- private:
-  virtual void ScanData(std::istream&) override;
-
-  int dist_;
-  float angle_;
-};
+enum MessageType { CarMove, RadarScan };
 
 class ArduinoCommunicator {
  public:
   ArduinoCommunicator();
 
-  bool SendMessage(MessageType type, const Message& message);
-  std::shared_ptr<Message> ReceiveMessage(MessageType type,
-                                               int ms_timeout);
+  template <MessageType type, typename... Args>
+  void SendMessage(const Args&... args) {
+    auto& client = type == CarMove ? move_client_ : radar_client_;
+
+    try {
+      client.Send(args...);
+    } catch (std::exception& exception) {
+      perror(exception.what());
+      exit(1);
+    }
+  }
+
+  template <MessageType type>
+  auto ReceiveMessage(int ms_timeout) {
+    try {
+      if constexpr (type == CarMove) {
+        int test;
+        return move_client_.Receive(ms_timeout, test);
+      } else {
+        std::pair<float, int> scan;
+        if (radar_client_.Receive(ms_timeout, scan.first, scan.second)) {
+          return std::optional(scan);
+        }
+        return std::optional<decltype(scan)>();
+      }
+    } catch (std::exception& exception) {
+      perror(exception.what());
+      exit(2);
+    }
+  }
 
  private:
   TCP::TcpServer server_ = TCP::TcpServer(kArduinoPort);
-  TCP::TcpClient client_;
-
-  std::queue<std::shared_ptr<Message>> unclaimed_messages[2];
+  TCP::TcpClient move_client_;
+  TCP::TcpClient radar_client_;
 };
 
 }  // namespace AC

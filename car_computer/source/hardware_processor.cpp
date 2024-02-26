@@ -13,8 +13,7 @@ void Movement::MoveStraight(int dist, int speed) {
     speed = kDefaultStraightSpeed;
   }
 
-  communicator_.SendMessage(AC::TCarMove,
-                            AC::CTCarMove(dist, dist, 1000 * dist / speed));
+  communicator_.SendMessage<AC::CarMove>(dist, dist, 1000 * dist / speed);
   is_moving_ = true;
 }
 
@@ -22,8 +21,7 @@ void Movement::Rotate(float angle, int speed) {
   float dist = angle * kRotateLen / 360;
   speed = speed * kRotateLen / 360;
 
-  communicator_.SendMessage(AC::TCarMove,
-                            AC::CTCarMove(-dist, dist, 1000 * dist / speed));
+  communicator_.SendMessage<AC::CarMove>(-dist, dist, 1000 * dist / speed);
   is_moving_ = true;
 }
 
@@ -32,7 +30,7 @@ bool Movement::IsMoving() {
     return false;
   }
 
-  is_moving_ = communicator_.ReceiveMessage(AC::RCarMoveFinish, 0) != nullptr;
+  is_moving_ = communicator_.ReceiveMessage<AC::CarMove>(0);
   return is_moving_;
 }
 
@@ -77,7 +75,7 @@ bool Car::IsMoving() const {
     return false;
   }
 
-  if (communicator_.ReceiveMessage(AC::RCarMoveFinish, 0) == nullptr) {
+  if (movement_.IsMoving()) {
     return true;
   }
 
@@ -99,21 +97,20 @@ void Car::HeadTo(PTIT::Coord destination) {
 }
 
 std::list<std::pair<float, int>> Car::Scan() {
-  communicator_.SendMessage(AC::TRadarScan, AC::CTRadarScan());
+  communicator_.SendMessage<AC::RadarScan>(1);
 
   std::list<std::pair<float, int>> scan;
 
   while (true) {
-    auto ptr = communicator_.ReceiveMessage(AC::RRadarScan, 1000);
-    if (ptr == nullptr) {
+    auto data = communicator_.ReceiveMessage<AC::RadarScan>(1000);
+    if (!data.has_value()) {
       continue;
     }
-    const auto& data = *static_cast<AC::CRRadarScan*>(ptr.get());
-    if (data.IsTerm()) {
+    if (data->second < 0) {
       break;
     }
 
-    scan.push_back(data.GetData());
+    scan.push_back(data.value());
   }
 
   return scan;
