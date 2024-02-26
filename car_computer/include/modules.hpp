@@ -17,8 +17,9 @@ const std::chrono::milliseconds kSleepFail(100);
 const std::chrono::milliseconds kPositionDelay(20);
 
 const int kMmPerPx = 10;
-const float kRadarWidth = 1.8;  // deg
-const int kBorderOffset = 500 / kMmPerPx;
+const float kRadarWidth = 1.8;             // deg
+const int kBorderOffset = 500 / kMmPerPx;  // px
+const PTIT::Coord kPxMapSize(1000, 1000);
 
 class ClientCommunication {
  public:

@@ -90,7 +90,10 @@ void ClientCommunication::TCPActor() {
       client_.StopClient();
       try {
         client_ = server_.AcceptConnection();
+        client_.Send(kPxMapSize.x, kPxMapSize.y, kMmPerPx, kBorderOffset,
+                     kRadarWidth);
       } catch (TCP::TcpException& accept_exc) {
+        client_.StopClient();
         perror(accept_exc.what());
       }
     }
