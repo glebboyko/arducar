@@ -29,6 +29,11 @@ void MainLoop(ClientCommunication& client, BM::Bitmap& bitmap, CM::Car& car) {
       break;
     }
 
+    {
+      struct SPRT::Position position(car.GetPosition().first,
+                                     car.GetPosition().second);
+      client.Send(SPRT::Position, position);
+    }
     auto scan = car.Scan();
     {
       for (auto [angle, dist] : scan) {
