@@ -1,44 +1,89 @@
 #pragma once
 
+#include <list>
+#include <primitives.hpp>
 #include <string>
-
-#include "primitives.hpp"
 
 namespace SPRT {
 
 const std::string kServerAddress = "192.168.1.100";
-const int kTcpPort = 3470;
+const int kClientPort = 44'450;
 
-enum TcpClientTypes { Visualizer, Arduino };
+enum MessageType { Position, Scan, Destination, Route, Condition };
 
-enum QueryType {
-  QRadarScan,  // {Позиция радара, Угол поворота, Ширина снимка, Расстояние}
-  QWorkingArea,  // std::list<Coord> границ
-  QCarPosition,  // {Позиция машинки, угол поворота машинки}
-  QDestination,  // Позиция точки назначения
-  QRoute,        // std::list<Coord> точки маршрута
-  QStatus        // std::string статус
+enum Status { Act, Pause, Stop };
+enum CurrAction { Init, Scanning, MovingToPoint, Computing, Finish };
+
+struct Message {
+ protected:
+  virtual void PrintData(std::ostream&) const = 0;
+  virtual void ScanData(std::istream&) = 0;
+
+  friend std::istream& operator>>(std::istream&, Message&);
+  friend std::ostream& operator<<(std::ostream&, const Message&);
 };
 
-struct RadarScan {
+struct Position : Message {
+ public:
+  Position() = default;
+  Position(PTIT::Coord posistion, float angle);
+
   PTIT::Coord position;
-  double deg;
-  double radar_width;
+  float angle;
 
-  int distance;
+ private:
+  virtual void PrintData(std::ostream&) const override;
+  virtual void ScanData(std::istream&) override;
 };
 
-using WorkingArea = std::list<PTIT::Coord>;
+struct RadarScan : Message {
+ public:
+  RadarScan() = default;
+  RadarScan(float angle, int dist);
 
-struct CarPosition {
-  PTIT::Coord position;
-  double deg;
+  float angle;
+  int dist;
+
+ private:
+  virtual void PrintData(std::ostream&) const override;
+  virtual void ScanData(std::istream&) override;
 };
 
-using Destination = PTIT::Coord;
+struct Destination : Message {
+ public:
+  Destination() = default;
+  Destination(PTIT::Coord destination);
 
-using Route = std::list<PTIT::Coord>;
+  PTIT::Coord destination;
 
-using Status = std::string;
+ private:
+  virtual void PrintData(std::ostream&) const override;
+  virtual void ScanData(std::istream&) override;
+};
+
+struct Route : Message {
+ public:
+  Route() = default;
+  Route(const std::list<PTIT::Coord>& route);
+
+  std::list<PTIT::Coord> route;
+
+ private:
+  virtual void PrintData(std::ostream&) const override;
+  virtual void ScanData(std::istream&) override;
+};
+
+struct Condition : Message {
+ public:
+  Condition() = default;
+  Condition(Status status, CurrAction action);
+
+  Status status;
+  CurrAction action;
+
+ private:
+  virtual void PrintData(std::ostream&) const override;
+  virtual void ScanData(std::istream&) override;
+};
 
 }  // namespace SPRT
