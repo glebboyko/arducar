@@ -60,7 +60,7 @@ void Layer::Show(bool show) { bitmap_->Show(show); }
 bool Layer::IsShown() const { return bitmap_->IsShown(); }
 
 void Layer::Update() {
-  auto rad = DegToRad(deg_);
+  auto rad = wxDegToRad(deg_);
   auto norm_cont_size = base_size_ * (abs(sin(rad)) + abs(cos(rad)));
   wxPoint norm_position = {position_.x - (norm_cont_size.x / 2),
                            position_.y - (norm_cont_size.y / 2)};
@@ -145,6 +145,7 @@ Frame::Frame(wxSize map_size)
 
   position_ = Layer(wxImage("../arducar_position.png", wxBITMAP_TYPE_PNG), this,
                     kPosiSize);
+  position_.Show(false);
 
   update_thread_ = new UpdaterThread(this);
   update_thread_->Run();
