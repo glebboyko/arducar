@@ -37,7 +37,8 @@ void MainLoop(ClientCommunication& client, BM::Bitmap& bitmap, CM::Car& car) {
     auto scan = car.Scan();
     {
       for (auto [angle, dist] : scan) {
-        struct SPRT::RadarScan radar_scan(angle, dist);
+        struct SPRT::RadarScan radar_scan(angle + car.GetPosition().second,
+                                          dist);
         client.Send(SPRT::Scan, radar_scan);
       }
       struct SPRT::Condition condition(status, SPRT::Computing);
@@ -45,11 +46,12 @@ void MainLoop(ClientCommunication& client, BM::Bitmap& bitmap, CM::Car& car) {
     }
 
     for (auto [angle, dist] : scan) {
-      env_shot.AddMeasure(angle, dist, kRadarWidth, car.GetPosition().first);
+      env_shot.AddMeasure(angle + car.GetPosition().second, dist, kRadarWidth,
+                          car.GetPosition().first);
     }
 
-    auto destination =
-        working_area.ProcessArea(car.GetPosition().first, kBorderOffset);
+    auto destination = working_area.ProcessArea(
+        car.GetPosition().first / kMmPerPx, kBorderOffset);
     if (!destination.has_value()) {
       status = SPRT::Stop;
       struct SPRT::Condition condition(status, SPRT::Finish);
