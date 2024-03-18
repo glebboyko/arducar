@@ -1,6 +1,7 @@
 #include <SPI.h>
-#include "nRF24L01.h"
+
 #include "RF24.h"
+#include "nRF24L01.h"
 
 // radio
 #define CE_PIN 9
@@ -10,149 +11,166 @@
 #define CHANNEL 0x6f
 
 // motor
-#define STEP_PIN 3
-#define DIR_PIN 2
-#define SPEED_PIN 4
+#define STEP_PIN 5
+#define DIR_PIN 4
+#define SPEED_PIN 6
+
+#define FROM_MAGNET_MC_STEPS -240
 
 // magnet detector
 #define HOLL_PIN A7
 
 class Radio {
-public:
-    Radio() {
-        radio_.begin();
-        radio_.setDataRate (RF24_250KBPS); // Скорость обмена данными 1 Мбит/сек
-        radio_.setCRCLength(RF24_CRC_8);
-        radio_.setChannel(CHANNEL);
-        radio_.setAutoAck(false);
-        radio_.setPALevel(RF24_PA_LOW);
-        radio_.powerUp();
-    }
+ public:
+  Radio() {
+    radio_.begin();
+    radio_.setDataRate(RF24_250KBPS);  // Скорость обмена данными 1 Мбит/сек
+    radio_.setCRCLength(RF24_CRC_8);
+    radio_.setChannel(CHANNEL);
+    radio_.setAutoAck(false);
+    radio_.setPALevel(RF24_PA_LOW);
+    radio_.powerUp();
+  }
 
-    void SetReceiveMode() {
-        radio_.openReadingPipe(1, PIPE);
-    }
-    void SetSendMode() {
-        StopListening();
-        radio_.closeReadingPipe(PIPE);
-        radio_.openWritingPipe(PIPE);
-    }
+  void SetReceiveMode() { radio_.openReadingPipe(1, PIPE); }
 
-    void StopListening() { radio_.stopListening(); }
-    void StartListening() { radio_.startListening(); }
+  void SetSendMode() {
+    StopListening();
+    radio_.closeReadingPipe(PIPE);
+    radio_.openWritingPipe(PIPE);
+  }
 
-    bool IsAvailable() { return radio_.available(); }
-    int Receive() {
-        int data;
-        radio_.read(&data, sizeof(data));
+  void StopListening() { radio_.stopListening(); }
 
-        return data;
-    }
+  void StartListening() { radio_.startListening(); }
 
-    void Send(int data) { radio_.write(&data, sizeof(data)); }
+  bool IsAvailable() { return radio_.available(); }
 
-private:
-    RF24 radio_ = RF24(CE_PIN, CSN_PIN);
+  int Receive() {
+    int data;
+    radio_.read(&data, sizeof(data));
+
+    return data;
+  }
+
+  void Send(int data) { radio_.write(&data, sizeof(data)); }
+
+ private:
+  RF24 radio_ = RF24(CE_PIN, CSN_PIN);
 };
 
 class Motor {
-public:
-    Motor() {
-        pinMode(STEP_PIN, OUTPUT);
-        pinMode(DIR_PIN, OUTPUT);
-        pinMode(SPEED_PIN, OUTPUT);
+ public:
+  Motor() {
+    pinMode(STEP_PIN, OUTPUT);
+    pinMode(DIR_PIN, OUTPUT);
+    pinMode(SPEED_PIN, OUTPUT);
 
-        digitalWrite(STEP_PIN, LOW);
-        digitalWrite(DIR_PIN, LOW);
-        digitalWrite(SPEED_PIN, LOW);
+    digitalWrite(STEP_PIN, LOW);
+    digitalWrite(DIR_PIN, LOW);
+    digitalWrite(SPEED_PIN, LOW);
+  }
+
+  void ChangeDir() {
+    curr_dir_ = !curr_dir_;
+    digitalWrite(DIR_PIN, curr_dir_ ? HIGH : LOW);
+  }
+
+  void SetSpeed(bool fast) {
+    curr_speed_ = fast;
+    digitalWrite(SPEED_PIN, curr_speed_ ? LOW : HIGH);
+  }
+
+  void MakeStep() {
+    digitalWrite(STEP_PIN, HIGH);
+    digitalWrite(STEP_PIN, LOW);
+    delay(5);
+
+    int step_diff = curr_speed_ ? 16 : 1;
+    if (!curr_dir_) {
+      step_diff *= -1;
     }
 
-    void ChangeDir() {
-        curr_dir_ = !curr_dir_;
-        digitalWrite(DIR_PIN, curr_dir_ ? HIGH : LOW);
+    curr_step_ = (kStepNum + curr_step_ + step_diff) % kStepNum;
+  }
+
+  void MakeFullStep() {
+    int step_num = curr_speed_ ? 1 : 16;
+    for (int i = 0; i < step_num; ++i) {
+      MakeStep();
     }
+  }
 
-    void SetSpeed(bool fast) {
-        curr_speed_ = fast;
-        digitalWrite(SPEED_PIN, curr_speed_ ? LOW : HIGH);
-    }
+  int GetStep() { return curr_step_; }
 
-    void MakeStep() {
-        digitalWrite(STEP_PIN, HIGH);
-        digitalWrite(STEP_PIN, LOW);
+  const int FullStepNum = 200;
 
-        int step_diff = curr_speed_ ? 16 : 1;
-        if (!curr_dir_) {
-            step_diff *= -1;
-        }
+ private:
+  const int kStepNum = FullStepNum * 16;
 
-        curr_step_ = (kStepNum + curr_step_ + step_diff) % kStepNum;
-    }
-
-    void MakeFullStep() {
-        int step_num = curr_speed_ ? 1 : 16;
-        for (int i = 0; i < step_num; ++i) {
-            MakeStep();
-            if (i != step_num - 1) {
-                delay(5);
-            }
-        }
-    }
-
-    int GetStep() { return curr_step_; }
-
-    const int FullStepNum = 200;
-
-private:
-    const int kStepNum = FullStepNum * 16;
-
-    bool curr_dir_ = true;
-    bool curr_speed_ = true;
-    int curr_step_ = 0;
+  bool curr_dir_ = false;
+  bool curr_speed_ = true;
+  int curr_step_ = 0;
 };
 
-bool MagnetDetected() { return digitalRead(HOLL_PIN) == HIGH; }
+bool MagnetDetected() { return analogRead(HOLL_PIN) >= 1000; }
 
 Motor* InitMotor() {
-    Motor* motor = new Motor;
+  Motor* motor = new Motor;
 
-    while (!MagnetDetected()) {
-        motor->MakeStep();
-    }
+  while (!MagnetDetected()) {
+    motor->MakeStep();
+  }
 
-    motor->SetSpeed(false);
-    while (MagnetDetected()) {
-        motor->MakeStep();
-    }
+  motor->SetSpeed(false);
+  while (MagnetDetected()) {
+    motor->MakeStep();
+  }
 
-    return motor;
+  if (FROM_MAGNET_MC_STEPS < 0) {
+    motor->ChangeDir();
+  }
+  for (int i = 0; i < abs(FROM_MAGNET_MC_STEPS); ++i) {
+    motor->MakeStep();
+  }
+
+  if (FROM_MAGNET_MC_STEPS < 0) {
+    motor->ChangeDir();
+  }
+
+  return motor;
 }
 
 Radio* radio;
 Motor* motor;
 
 void setup() {
-    Serial.begin(9600);
+  Serial.begin(9600);
 
-    pinMode(HOLL_PIN, INPUT);
+  pinMode(HOLL_PIN, INPUT);
 
-    radio = new Radio;
-    radio->SetReceiveMode();
+  radio = new Radio;
+  radio->SetReceiveMode();
 
-    motor = InitMotor();
+  motor = InitMotor();
 }
 
 void loop() {
-    while (Serial.available() <= 0);
-    Serial.readString();
+  while (Serial.available() <= 0);
+  Serial.readString();
 
-    for (int i = 0; i < 200; ++i) {
-        radio->StartListening();
-        radio->Receive();
-        int measure = radio->Receive();
-        radio->StopListening();
-        Serial.print(measure);
-        motor->MakeFullStep();
-    }
-    Serial.print(0);
+  for (int i = 0; i < 200; ++i) {
+    radio->StartListening();
+
+    while (!radio->IsAvailable());
+    radio->Receive();
+
+    while (!radio->IsAvailable());
+    int measure = radio->Receive();
+    radio->StopListening();
+
+    Serial.println(measure);
+    motor->MakeFullStep();
+  }
+  Serial.print(0);
 }
