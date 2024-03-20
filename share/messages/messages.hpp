@@ -1,89 +1,115 @@
 #pragma once
 
 #include <list>
+#include <memory>
 #include <primitives.hpp>
 #include <string>
 
-namespace SPRT {
+namespace MSG {
 
 const std::string kServerAddress = "192.168.1.100";
 const int kClientPort = 44'450;
 
-enum MessageType { Position, Scan, Destination, Route, Condition };
+enum MessageType { TPosition, TScan, TDestination, TRoute, TStatus, TAction };
 
-enum Status { Act, Pause, Stop };
+enum CurrStatus { Act, Pause, Stop };
 enum CurrAction { Init, Scanning, MovingToPoint, Computing, Finish };
 
 struct Message {
+ public:
+  virtual MessageType GetType() const = 0;
+
  protected:
   virtual void PrintData(std::ostream&) const = 0;
-  virtual void ScanData(std::istream&) = 0;
 
-  friend std::istream& operator>>(std::istream&, Message&);
   friend std::ostream& operator<<(std::ostream&, const Message&);
+};
+
+struct MessageContainer {
+ public:
+  std::shared_ptr<Message> message;
+
+  friend std::istream& operator>>(std::istream&, MessageContainer&);
 };
 
 struct Position : Message {
  public:
-  Position() = default;
   Position(PTIT::Coord posistion, float angle);
+  Position(std::istream&);
 
   PTIT::Coord position;
   float angle;
 
  private:
   virtual void PrintData(std::ostream&) const override;
-  virtual void ScanData(std::istream&) override;
+
+  virtual MessageType GetType() const override;
 };
 
-struct RadarScan : Message {
+struct Scan : Message {
  public:
-  RadarScan() = default;
-  RadarScan(float angle, int dist);
+  Scan(float angle, int dist);
+  Scan(std::istream&);
 
   float angle;
   int dist;
 
  private:
   virtual void PrintData(std::ostream&) const override;
-  virtual void ScanData(std::istream&) override;
+
+  virtual MessageType GetType() const override;
 };
 
 struct Destination : Message {
  public:
-  Destination() = default;
   Destination(PTIT::Coord destination);
+  Destination(std::istream&);
 
   PTIT::Coord destination;
 
  private:
   virtual void PrintData(std::ostream&) const override;
-  virtual void ScanData(std::istream&) override;
+
+  virtual MessageType GetType() const override;
 };
 
 struct Route : Message {
  public:
-  Route() = default;
   Route(const std::list<PTIT::Coord>& route);
+  Route(std::istream&);
 
   std::list<PTIT::Coord> route;
 
  private:
   virtual void PrintData(std::ostream&) const override;
-  virtual void ScanData(std::istream&) override;
+
+  virtual MessageType GetType() const override;
 };
 
-struct Condition : Message {
+struct Status : Message {
  public:
-  Condition() = default;
-  Condition(Status status, CurrAction action);
+  Status(CurrStatus status);
+  Status(std::istream&);
 
-  Status status;
+  CurrStatus status;
+
+ private:
+  virtual void PrintData(std::ostream&) const override;
+
+  virtual MessageType GetType() const override;
+};
+
+struct Action : Message {
+ public:
+  Action(CurrAction status);
+  Action(std::istream&);
+
   CurrAction action;
 
  private:
   virtual void PrintData(std::ostream&) const override;
-  virtual void ScanData(std::istream&) override;
+
+  virtual MessageType GetType() const override;
 };
 
-}  // namespace SPRT
+}  // namespace MSG
