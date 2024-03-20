@@ -16,7 +16,9 @@ include_directories(../map)
 
 #adding executables
 add_executable(${PROJECT_NAME}
-        source/main_loop.cpp
+        main.cpp
+        source/runners.cpp
+        source/control_center.cpp
         source/arduino_communicator.cpp
         source/client_communicator.cpp
         source/hardware_processor.cpp
