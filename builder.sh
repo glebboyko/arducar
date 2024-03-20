@@ -7,7 +7,7 @@ libs_dir="$(pwd)/libs"
 rm -rf "${libs_dir}/built"
 mkdir "${libs_dir}/built"
 
-git_link="https://git.lafresa.ru/glebboiko"
+git_link="https://github.com/glebboyko"
 for lib in ${git_libs[*]}
 do
   rm -rf "${libs_dir}/${lib}"
