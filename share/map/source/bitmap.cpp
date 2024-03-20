@@ -1,4 +1,4 @@
-#include "bitmap.hpp"
+#include "map/bitmap.hpp"
 
 namespace BM {
 
