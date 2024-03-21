@@ -6,7 +6,7 @@ const int kSizeY = 1000;
 const float kMmPerPx = 0.1;
 
 int main() {
-  ControlCenter control_center(kSizeX, kSizeY, kMmPerPx);
+  CC::ControlCenter control_center(kSizeX, kSizeY, kMmPerPx);
 
-  AutoMapBuilder(control_center);
+  RNS::AutoMapBuilder(control_center);
 }

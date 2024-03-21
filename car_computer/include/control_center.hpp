@@ -1,10 +1,12 @@
 #pragma once
 
+#include <list>
 #include <optional>
 #include <primitives.hpp>
-#include <list>
 
-enum Mode { Stop, Pause, Run };
+#include "messages/messages.hpp"
+
+namespace CC {
 
 struct ScanData {
   double angle;
@@ -19,7 +21,9 @@ class ControlCenter {
   std::optional<PTIT::Coord> GetDestination();
   void GoToPoint(PTIT::Coord point);
 
-  Mode GetMode();
+  MSG::CurrStatus GetMode();
 
  private:
 };
+
+}  // namespace CC

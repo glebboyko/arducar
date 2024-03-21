@@ -11,7 +11,7 @@ include_directories(../libs/ptit_lib/include)
 
 include_directories(include)
 
-include_directories(../connection_support)
+include_directories(../share)
 include_directories(../map)
 
 #adding executables
@@ -19,12 +19,15 @@ add_executable(${PROJECT_NAME}
         main.cpp
         source/runners.cpp
         source/control_center.cpp
-        source/arduino_communicator.cpp
-        source/client_communicator.cpp
-        source/hardware_processor.cpp
-        ../connection_support/support.cpp
-        ../map/source/bitmap.cpp
-        ../map/source/env-shot.cpp
-        ../map/source/map_analyzer.cpp)
+
+        source/communicators.cpp
+        ../share/messages/messages.cpp
+
+        source/movement_processor.cpp
+
+        ../share/map/source/env-shot.cpp
+        ../share/map/source/map_analyzer.cpp
+        ../share/map/source/bitmap.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/libs/built/lib_ptit.a)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/libs/built/lib_c_tcp.a)

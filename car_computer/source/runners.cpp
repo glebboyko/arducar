@@ -3,13 +3,17 @@
 #include <chrono>
 #include <thread>
 
-void AutoMapBuilder(ControlCenter& control_center) {
+#include "messages/messages.hpp"
+
+namespace RNS {
+
+void AutoMapBuilder(CC::ControlCenter& control_center) {
   const std::chrono::milliseconds kLoopWait(100);
   while (true) {
     switch (control_center.GetMode()) {
-      case Stop:
+      case MSG::Stop:
         return;
-      case Pause:
+      case MSG::Pause:
         std::this_thread::sleep_for(kLoopWait);
         continue;
     }
@@ -23,3 +27,5 @@ void AutoMapBuilder(ControlCenter& control_center) {
     control_center.GoToPoint(point.value());
   }
 }
+
+}  // namespace RNS

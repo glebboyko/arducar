@@ -2,5 +2,9 @@
 
 #include "control_center.hpp"
 
-void AutoMapBuilder(ControlCenter& control_center);
-void ChatGptBody(ControlCenter& control_center);
+namespace RNS {
+
+void AutoMapBuilder(CC::ControlCenter& control_center);
+void ChatGptBody(CC::ControlCenter& control_center);
+
+}  // namespace RNS
