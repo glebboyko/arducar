@@ -37,21 +37,21 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
   double left_deg = deg - (deg_width / 2);
   double right_deg = deg + (deg_width / 2);
 
-  double dist = static_cast<double>(mm_dist) * bitmap_.GetDensity();
+  double px_dist = static_cast<double>(mm_dist) / bitmap_.GetDensity();
 
-  PTIT::Coord radar_coord = mm_radar_coord * bitmap_.GetDensity();
+  PTIT::Coord radar_coord = mm_radar_coord / bitmap_.GetDensity();
 
   PTIT::Coord left_coord = {
-      static_cast<int>(mm_radar_coord.x * bitmap_.GetDensity() +
-                       (cos(PTIT::DegToRad(left_deg)) * dist)),
-      static_cast<int>(mm_radar_coord.y * bitmap_.GetDensity() +
-                       (sin(PTIT::DegToRad(left_deg)) * dist))};
+      static_cast<int>(radar_coord.x +
+                       (cos(PTIT::DegToRad(left_deg)) * px_dist)),
+      static_cast<int>(radar_coord.y +
+                       (sin(PTIT::DegToRad(left_deg)) * px_dist))};
 
   PTIT::Coord right_coord = {
-      static_cast<int>(mm_radar_coord.x * bitmap_.GetDensity() +
-                       (cos(PTIT::DegToRad(right_deg)) * dist)),
-      static_cast<int>(mm_radar_coord.y * bitmap_.GetDensity() +
-                       (sin(PTIT::DegToRad(right_deg)) * dist))};
+      static_cast<int>(radar_coord.x +
+                       (cos(PTIT::DegToRad(right_deg)) * px_dist)),
+      static_cast<int>(radar_coord.y +
+                       (sin(PTIT::DegToRad(right_deg)) * px_dist))};
 
   auto border_graphic = PTIT::Segment(left_coord, right_coord).GetGraphic();
   for (auto iter = border_graphic.begin(); iter != --border_graphic.end();
@@ -73,14 +73,15 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
         continue;
       }
 
-      int px_dist = PTIT::GetDistance(radar_coord, {x, y});
+      int dist = PTIT::GetDistance(mm_radar_coord,
+                                   PTIT::Coord(x, y) * bitmap_.GetDensity());
 
-      if (pixel.is_border && pixel.dist < px_dist) {
+      if (pixel.is_border && pixel.dist < dist) {
         valid = false;
         break;
       }
-      if (pixel.dist >= px_dist) {
-        pixel.dist = px_dist;
+      if (pixel.dist >= dist) {
+        pixel.dist = dist;
         pixel.is_border = false;
         pixel.call_identifier = measure_num_;
       }
@@ -94,12 +95,13 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       if (!bitmap_.IsPointInRange(border[i].x, border[i].y)) {
         continue;
       }
-      double px_dist = PTIT::GetDistance(radar_coord, border[i]);
+      int dist =
+          PTIT::GetDistance(mm_radar_coord, border[i] * bitmap_.GetDensity());
       BM::Bitmap::ScanData pixel =
           bitmap_.GetScanPoint(border[i].x, border[i].y);
-      if (pixel.dist >= px_dist || pixel.call_identifier == measure_num_) {
+      if (pixel.dist >= dist || pixel.call_identifier == measure_num_) {
         pixel = bitmap_.GetScanPoint(border[i].x, border[i].y);
-        pixel.dist = px_dist;
+        pixel.dist = dist;
         pixel.is_border = true;
         pixel.call_identifier = measure_num_;
         bitmap_.SetScanData(border[i].x, border[i].y, pixel);
