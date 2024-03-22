@@ -6,11 +6,14 @@ namespace MA {
 
 /*-------------------------- working area processor --------------------------*/
 WorkingAreaProcessor::WorkingAreaProcessor(BM::Bitmap& bitmap,
-                                           int border_offset)
-    : bitmap_(bitmap), border_offset_(border_offset) {}
+                                           int border_offset,
+                                           int dist_threshold)
+    : bitmap_(bitmap),
+      border_offset_(border_offset),
+      dist_threshold_(dist_threshold) {}
 
 std::optional<PTIT::Coord> WorkingAreaProcessor::ProcessArea(
-    const PTIT::Coord& position, int dist_threshold) {
+    const PTIT::Coord& position) {
   bitmap_.CleanBFS();
   SetBannedArea();
 
@@ -29,7 +32,7 @@ std::optional<PTIT::Coord> WorkingAreaProcessor::ProcessArea(
 
     if (!bitmap_.GetBFSPoint(curr_point.x, curr_point.y).banned &&
         bitmap_.GetScanPoint(curr_point.x, curr_point.y).dist >=
-            dist_threshold &&
+            dist_threshold_ &&
         !destination.has_value()) {
       destination = curr_point;
     }
@@ -60,19 +63,30 @@ std::optional<PTIT::Coord> WorkingAreaProcessor::ProcessArea(
     }
   }
 
-  return destination;
+  return destination.has_value() ? destination.value() * bitmap_.GetDensity()
+                                 : destination;
 }
 
 void WorkingAreaProcessor::SetBannedArea() {
   auto [x_size, y_size] = bitmap_.GetSize();
   auto extracted_segms = PTIT::ExtractPrimitives(
-      bitmap_, x_size, y_size, [](const BM::Bitmap& bitmap, int x, int y) {
-        return bitmap.GetScanPoint(x, y).is_border;
+      bitmap_, x_size, y_size, [this](const BM::Bitmap& bitmap, int x, int y) {
+        const auto& point = bitmap.GetScanPoint(x, y);
+
+        bool has_scanned_neigh = false;
+        for (auto [neigh_x, neigh_y] : GetNeighbours({x, y})) {
+          if (!bitmap.GetScanPoint(neigh_x, neigh_y).is_border) {
+            has_scanned_neigh = true;
+            break;
+          }
+        }
+
+        return point.is_border || has_scanned_neigh;
       });
 
   for (auto segm : extracted_segms) {
     for (auto [x, y] : segm.GetArea(border_offset_)) {
-      if (!IsPointInPole(x, y)) {
+      if (!bitmap_.IsPointInRange(x, y)) {
         continue;
       }
 
@@ -87,7 +101,7 @@ std::list<PTIT::Coord> WorkingAreaProcessor::GetNeighbours(
 
   for (int x = coord.x - 1; x <= coord.x + 1; ++x) {
     for (int y = coord.y - 1; y <= coord.y; ++y) {
-      if (!IsPointInPole(x, y) || (x == coord.x && y == coord.y)) {
+      if (!bitmap_.IsPointInRange(x, y) || (x == coord.x && y == coord.y)) {
         continue;
       }
       neighbours.push_back({x, y});
@@ -97,22 +111,17 @@ std::list<PTIT::Coord> WorkingAreaProcessor::GetNeighbours(
   return neighbours;
 }
 
-bool WorkingAreaProcessor::IsPointInPole(int x, int y) const {
-  auto [x_size, y_size] = bitmap_.GetSize();
-
-  return x >= 0 && y >= 0 && x < x_size && y < y_size;
-}
-
 /*------------------------------- route getter -------------------------------*/
 std::list<PTIT::Coord> GetRoute(const BM::Bitmap& bitmap,
                                 const PTIT::Coord& destination) {
   std::list<PTIT::Coord> route;
   route.push_front(destination);
 
-  PTIT::Coord curr_coord = destination;
+  PTIT::Coord curr_coord = destination / bitmap.GetDensity();
 
   while (bitmap.GetBFSPoint(curr_coord.x, curr_coord.y).parent != curr_coord) {
-    curr_coord = bitmap.GetBFSPoint(curr_coord.x, curr_coord.y).parent;
+    curr_coord = bitmap.GetBFSPoint(curr_coord.x, curr_coord.y).parent /
+                 bitmap.GetDensity();
     route.push_front(curr_coord);
   }
 

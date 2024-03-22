@@ -10,16 +10,16 @@ namespace MA {
 
 class WorkingAreaProcessor {
  public:
-  WorkingAreaProcessor(BM::Bitmap& bitmap, int border_offset);
-  std::optional<PTIT::Coord> ProcessArea(const PTIT::Coord& position,
-                                         int dist_threshold);
+  WorkingAreaProcessor(BM::Bitmap& bitmap, int border_offset,
+                       int dist_threshold);
+  std::optional<PTIT::Coord> ProcessArea(const PTIT::Coord& position);
 
  private:
   BM::Bitmap& bitmap_;
   int border_offset_;
+  int dist_threshold_;
 
   void SetBannedArea();
-  bool IsPointInPole(int x, int y) const;
   std::list<PTIT::Coord> GetNeighbours(const PTIT::Coord& coord) const;
 };
 
