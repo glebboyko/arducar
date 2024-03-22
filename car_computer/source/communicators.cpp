@@ -2,19 +2,20 @@
 
 namespace CCM {
 
-Communicator::Communicator(int port, const MSG::InitData& init_data)
+DesktopCommunicator::DesktopCommunicator(int port,
+                                         const MSG::InitData& init_data)
     : server_(port), init_data_(init_data) {
-  acceptor_ = std::thread(&Communicator::Acceptor, this);
+  acceptor_ = std::thread(&DesktopCommunicator::Acceptor, this);
 }
 
-Communicator::~Communicator() {
+DesktopCommunicator::~DesktopCommunicator() {
   acceptor_mutex_.lock();
   server_.CloseListener();
   acceptor_mutex_.unlock();
   acceptor_.join();
 }
 
-std::shared_ptr<MSG::Message> Communicator::Receive() {
+std::shared_ptr<MSG::Message> DesktopCommunicator::Receive() {
   MSG::MessageContainer container;
 
   std::shared_ptr<MSG::Message> message(nullptr);
@@ -29,7 +30,7 @@ std::shared_ptr<MSG::Message> Communicator::Receive() {
   return message;
 }
 
-void Communicator::Send(std::shared_ptr<MSG::Message> message) {
+void DesktopCommunicator::Send(std::shared_ptr<MSG::Message> message) {
   acceptor_mutex_.lock();
   try {
     client_.Send(*message);
@@ -39,7 +40,7 @@ void Communicator::Send(std::shared_ptr<MSG::Message> message) {
   acceptor_mutex_.unlock();
 }
 
-void Communicator::Acceptor() {
+void DesktopCommunicator::Acceptor() {
   while (true) {
     try {
       auto client = server_.AcceptConnection();
@@ -59,7 +60,7 @@ void Communicator::Acceptor() {
   }
 }
 
-bool Communicator::SendInitData(TCP::TcpClient& client) {
+bool DesktopCommunicator::SendInitData(TCP::TcpClient& client) {
   try {
     client.Send(init_data_);
     return true;
@@ -68,7 +69,7 @@ bool Communicator::SendInitData(TCP::TcpClient& client) {
   }
 }
 
-bool Communicator::SendLostMessages(TCP::TcpClient& client) {
+bool DesktopCommunicator::SendLostMessages(TCP::TcpClient& client) {
   while (true) {
     acceptor_mutex_.lock();
     if (lost_messages_.empty()) {

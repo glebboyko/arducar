@@ -9,10 +9,10 @@
 
 namespace CCM {
 
-class Communicator {
+class DesktopCommunicator {
  public:
-  Communicator(int port, const MSG::InitData& init_data);
-  ~Communicator();
+  DesktopCommunicator(int port, const MSG::InitData& init_data);
+  ~DesktopCommunicator();
 
   std::shared_ptr<MSG::Message> Receive();
   void Send(std::shared_ptr<MSG::Message>);
