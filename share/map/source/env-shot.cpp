@@ -6,10 +6,8 @@
 
 #include "ptit_lib/source/supply.hpp"
 
-EnvShot::EnvShot(BM::Bitmap& bitmap, float px_per_mm, int border_thickness)
-    : bitmap_(bitmap),
-      px_per_mm_(px_per_mm),
-      border_thickness_(border_thickness) {}
+EnvShot::EnvShot(BM::Bitmap& bitmap, float px_per_mm)
+    : bitmap_(bitmap), px_per_mm_(px_per_mm) {}
 
 std::vector<PTIT::Coord> GetSortedTriangle(const PTIT::Coord& base,
                                            const PTIT::Coord& b,
@@ -66,7 +64,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
 
     for (const auto& [x, y] :
          GetSortedTriangle(radar_coord, border[0], border[1])) {
-      if (!IsPixelInMap(x, y)) {
+      if (!bitmap_.IsPointInRange(x, y)) {
         continue;
       }
 
@@ -94,31 +92,18 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       continue;
     }
     for (int i = 0; i < 2; ++i) {
-      if (!IsPixelInMap(border[i].x, border[i].y)) {
+      if (!bitmap_.IsPointInRange(border[i].x, border[i].y)) {
         continue;
       }
       double px_dist = PTIT::GetDistance(radar_coord, border[i]);
       BM::Bitmap::ScanData pixel =
           bitmap_.GetScanPoint(border[i].x, border[i].y);
       if (pixel.dist >= px_dist || pixel.call_identifier == measure_num_) {
-        for (int xb = border[i].x - (border_thickness_ / 2);
-             xb <=
-             border[i].x + (border_thickness_ / 2) + (border_thickness_ % 2);
-             ++xb) {
-          for (int yb = border[i].y - (border_thickness_ / 2);
-               yb <=
-               border[i].y + (border_thickness_ / 2) + (border_thickness_ % 2);
-               ++yb) {
-            if (!IsPixelInMap(xb, yb)) {
-              continue;
-            }
-            pixel = bitmap_.GetScanPoint(xb, yb);
-            pixel.dist = px_dist;
-            pixel.is_border = true;
-            pixel.call_identifier = measure_num_;
-            bitmap_.SetScanData(xb, yb, pixel);
-          }
-        }
+        pixel = bitmap_.GetScanPoint(border[i].x, border[i].y);
+        pixel.dist = px_dist;
+        pixel.is_border = true;
+        pixel.call_identifier = measure_num_;
+        bitmap_.SetScanData(border[i].x, border[i].y, pixel);
       }
     }
   }
@@ -145,9 +130,4 @@ void EnvShot::CreateImage(const char* image_name) const {
                       colors.insert({pixel.call_identifier, curr_color});
                       return curr_color;
                     });
-}
-
-bool EnvShot::IsPixelInMap(int x, int y) const noexcept {
-  auto [x_size, y_size] = bitmap_.GetSize();
-  return x >= 0 && y >= 0 && x < x_size && y < y_size;
 }
