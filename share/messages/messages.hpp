@@ -7,8 +7,16 @@
 
 namespace MSG {
 
-const std::string kServerAddress = "192.168.1.100";
-const int kClientPort = 44'450;
+struct InitData {
+  int px_size_x;
+  int px_size_y;
+  float mm_per_px;
+  int border_offset;
+  int dist_threshold;
+};
+
+std::istream& operator>>(std::istream&, InitData&);
+std::ostream& operator<<(std::ostream&, const InitData&);
 
 enum MessageType { TPosition, TScan, TDestination, TRoute, TStatus, TAction };
 

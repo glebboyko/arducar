@@ -4,6 +4,15 @@
 
 namespace MSG {
 
+std::istream& operator>>(std::istream& is, InitData& init) {
+  return is >> init.px_size_x >> init.px_size_y >> init.mm_per_px >>
+         init.border_offset >> init.dist_threshold;
+}
+std::ostream& operator<<(std::ostream& os, const InitData& init) {
+  return os << init.px_size_x << " " << init.px_size_y << " " << init.mm_per_px
+            << " " << init.border_offset << " " << init.dist_threshold;
+}
+
 std::ostream& operator<<(std::ostream& os, const Message& message) {
   os << message.GetType() << " ";
   message.PrintData(os);
