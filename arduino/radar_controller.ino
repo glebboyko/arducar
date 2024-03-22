@@ -3,6 +3,9 @@
 #include "RF24.h"
 #include "nRF24L01.h"
 
+#define STEP_NUM 200
+#define CIRCLE_DEG_NUM 360
+
 // radio
 #define CE_PIN 9
 #define CSN_PIN 10
@@ -156,10 +159,14 @@ void setup() {
 }
 
 void loop() {
-  while (Serial.available() <= 0);
+  if (Serial.available() <= 0) {
+    return;
+  }
   Serial.readString();
 
-  for (int i = 0; i < 200; ++i) {
+  for (int i = 0; i < STEP_NUM; ++i) {
+    float curr_angle = i * (float)CIRCLE_DEG_NUM / STEP_NUM;
+
     radio->StartListening();
 
     while (!radio->IsAvailable());
@@ -169,8 +176,10 @@ void loop() {
     int measure = radio->Receive();
     radio->StopListening();
 
-    Serial.println(measure);
-    motor->MakeFullStep();
+    Serial.print(curr_angle, 4);
+    Serial.print(" ")
+        Serial.println(measure)
+            motor->MakeFullStep();
   }
-  Serial.print(0);
+  Serial.println(0);
 }
