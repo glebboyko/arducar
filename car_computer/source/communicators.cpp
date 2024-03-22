@@ -2,7 +2,8 @@
 
 namespace CCM {
 
-Communicator::Communicator(int port) : server_(port) {
+Communicator::Communicator(int port, const MSG::InitData& init_data)
+    : server_(port), init_data_(init_data) {
   acceptor_ = std::thread(&Communicator::Acceptor, this);
 }
 
@@ -42,7 +43,7 @@ void Communicator::Acceptor() {
   while (true) {
     try {
       auto client = server_.AcceptConnection();
-      if (!SendLostMessages(client)) {
+      if (!SendInitData(client) || !SendLostMessages(client)) {
         continue;
       }
 
@@ -55,6 +56,15 @@ void Communicator::Acceptor() {
         break;
       }
     }
+  }
+}
+
+bool Communicator::SendInitData(TCP::TcpClient& client) {
+  try {
+    client.Send(init_data_);
+    return true;
+  } catch (TCP::TcpException& exception) {
+    return false;
   }
 }
 

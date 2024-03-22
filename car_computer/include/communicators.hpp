@@ -11,7 +11,7 @@ namespace CCM {
 
 class Communicator {
  public:
-  Communicator(int port);
+  Communicator(int port, const MSG::InitData& init_data);
   ~Communicator();
 
   std::shared_ptr<MSG::Message> Receive();
@@ -25,7 +25,11 @@ class Communicator {
   std::mutex acceptor_mutex_;
   std::queue<std::shared_ptr<MSG::Message>> lost_messages_;
 
+  MSG::InitData init_data_;
+
   void Acceptor();
+
+  bool SendInitData(TCP::TcpClient&);
   bool SendLostMessages(TCP::TcpClient&);
 };
 
