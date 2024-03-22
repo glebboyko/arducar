@@ -177,9 +177,9 @@ void loop() {
     radio->StopListening();
 
     Serial.print(curr_angle, 4);
-    Serial.print(" ")
-        Serial.println(measure)
-            motor->MakeFullStep();
+    Serial.print(" ");
+    Serial.println(measure);
+    motor->MakeFullStep();
   }
   Serial.println(0);
 }
