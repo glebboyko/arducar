@@ -36,6 +36,8 @@ class Bitmap {
 
   virtual void CleanBFS();
 
+  bool IsPointInRange(int x, int y) const noexcept;
+
  private:
   struct PixelData {
     ScanData scan;

@@ -36,6 +36,11 @@ void Bitmap::CleanBFS() {
   }
 }
 
+bool Bitmap::IsPointInRange(int x, int y) const noexcept {
+    auto [max_x, max_y] = GetSize();
+    return x >= 0 && x < max_x && y >= 0 && y < max_y;
+}
+
 /*------------------------------ visual bitmap -------------------------------*/
 VisualBitmap::VisualBitmap(int size_x, int size_y, unsigned char* scan_data,
                            unsigned char* scan_alpha,
