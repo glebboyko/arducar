@@ -24,7 +24,7 @@ class Bitmap {
     PTIT::Coord parent;
   };
 
-  Bitmap(int size_x, int size_y);
+  Bitmap(int size_x, int size_y, float mm_per_px);
 
   PTIT::Coord GetSize() const noexcept;
 
@@ -37,6 +37,7 @@ class Bitmap {
   virtual void CleanBFS();
 
   bool IsPointInRange(int x, int y) const noexcept;
+  float GetDensity() const noexcept;
 
  private:
   struct PixelData {
@@ -45,13 +46,15 @@ class Bitmap {
   };
 
   std::vector<std::vector<PixelData>> bitmap_;
+  float mm_per_px_;
 };
 
 class VisualBitmap : public Bitmap {
  public:
-  VisualBitmap(int size_x, int size_y, unsigned char* scan_data,
-               unsigned char* scan_alpha, unsigned char* border_alpha,
-               unsigned char* working_space_alpha, unsigned char* route_alpha);
+  VisualBitmap(int size_x, int size_y, float mm_per_px,
+               unsigned char* scan_data, unsigned char* scan_alpha,
+               unsigned char* border_alpha, unsigned char* working_space_alpha,
+               unsigned char* route_alpha);
 
   virtual void SetScanData(int x, int y,
                            const ScanData& scan_data) noexcept override;

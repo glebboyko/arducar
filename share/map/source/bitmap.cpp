@@ -3,9 +3,10 @@
 namespace BM {
 
 /*------------------------------- base bitmap --------------------------------*/
-Bitmap::Bitmap(int size_x, int size_y)
+Bitmap::Bitmap(int size_x, int size_y, float mm_per_px)
     : bitmap_(std::vector<std::vector<PixelData>>(
-          size_x, std::vector<PixelData>(size_y))) {}
+          size_x, std::vector<PixelData>(size_y))),
+      mm_per_px_(mm_per_px) {}
 
 PTIT::Coord Bitmap::GetSize() const noexcept {
   return {static_cast<int>(bitmap_.size()),
@@ -37,17 +38,18 @@ void Bitmap::CleanBFS() {
 }
 
 bool Bitmap::IsPointInRange(int x, int y) const noexcept {
-    auto [max_x, max_y] = GetSize();
-    return x >= 0 && x < max_x && y >= 0 && y < max_y;
+  auto [max_x, max_y] = GetSize();
+  return x >= 0 && x < max_x && y >= 0 && y < max_y;
 }
+float Bitmap::GetDensity() const noexcept { return mm_per_px_; }
 
 /*------------------------------ visual bitmap -------------------------------*/
-VisualBitmap::VisualBitmap(int size_x, int size_y, unsigned char* scan_data,
-                           unsigned char* scan_alpha,
+VisualBitmap::VisualBitmap(int size_x, int size_y, float mm_per_px,
+                           unsigned char* scan_data, unsigned char* scan_alpha,
                            unsigned char* border_alpha,
                            unsigned char* working_space_alpha,
                            unsigned char* route_alpha)
-    : Bitmap(size_x, size_y),
+    : Bitmap(size_x, size_y, mm_per_px),
       scan_data_(scan_data),
       scan_alpha_(scan_alpha),
       border_alpha_(border_alpha),

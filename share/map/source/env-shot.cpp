@@ -6,8 +6,7 @@
 
 #include "ptit_lib/source/supply.hpp"
 
-EnvShot::EnvShot(BM::Bitmap& bitmap, float px_per_mm)
-    : bitmap_(bitmap), px_per_mm_(px_per_mm) {}
+EnvShot::EnvShot(BM::Bitmap& bitmap) : bitmap_(bitmap) {}
 
 std::vector<PTIT::Coord> GetSortedTriangle(const PTIT::Coord& base,
                                            const PTIT::Coord& b,
@@ -38,20 +37,20 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
   double left_deg = deg - (deg_width / 2);
   double right_deg = deg + (deg_width / 2);
 
-  double dist = static_cast<double>(mm_dist) * px_per_mm_;
+  double dist = static_cast<double>(mm_dist) * bitmap_.GetDensity();
 
-  PTIT::Coord radar_coord = mm_radar_coord * px_per_mm_;
+  PTIT::Coord radar_coord = mm_radar_coord * bitmap_.GetDensity();
 
   PTIT::Coord left_coord = {
-      static_cast<int>(mm_radar_coord.x * px_per_mm_ +
+      static_cast<int>(mm_radar_coord.x * bitmap_.GetDensity() +
                        (cos(PTIT::DegToRad(left_deg)) * dist)),
-      static_cast<int>(mm_radar_coord.y * px_per_mm_ +
+      static_cast<int>(mm_radar_coord.y * bitmap_.GetDensity() +
                        (sin(PTIT::DegToRad(left_deg)) * dist))};
 
   PTIT::Coord right_coord = {
-      static_cast<int>(mm_radar_coord.x * px_per_mm_ +
+      static_cast<int>(mm_radar_coord.x * bitmap_.GetDensity() +
                        (cos(PTIT::DegToRad(right_deg)) * dist)),
-      static_cast<int>(mm_radar_coord.y * px_per_mm_ +
+      static_cast<int>(mm_radar_coord.y * bitmap_.GetDensity() +
                        (sin(PTIT::DegToRad(right_deg)) * dist))};
 
   auto border_graphic = PTIT::Segment(left_coord, right_coord).GetGraphic();

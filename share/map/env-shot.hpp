@@ -8,7 +8,7 @@
 
 class EnvShot {
  public:
-  EnvShot(BM::Bitmap& bitmap, float px_per_mm);
+  EnvShot(BM::Bitmap& bitmap);
 
   void AddMeasure(double deg, int mm_dist, double deg_width,
                   const PTIT::Coord& mm_radar_coord);
@@ -16,7 +16,6 @@ class EnvShot {
   void CreateImage(const char* image_name) const;
 
  private:
-  float px_per_mm_;
   size_t measure_num_ = 0;
 
   BM::Bitmap& bitmap_;
