@@ -13,7 +13,9 @@ WorkingAreaProcessor::WorkingAreaProcessor(BM::Bitmap& bitmap,
       dist_threshold_(dist_threshold) {}
 
 std::optional<PTIT::Coord> WorkingAreaProcessor::ProcessArea(
-    const PTIT::Coord& position) {
+    PTIT::Coord position) {
+  position = position / bitmap_.GetDensity();
+
   bitmap_.CleanBFS();
   SetBannedArea();
 
@@ -85,7 +87,7 @@ void WorkingAreaProcessor::SetBannedArea() {
       });
 
   for (auto segm : extracted_segms) {
-    for (auto [x, y] : segm.GetArea(border_offset_)) {
+    for (auto [x, y] : segm.GetArea(border_offset_ / bitmap_.GetDensity())) {
       if (!bitmap_.IsPointInRange(x, y)) {
         continue;
       }
@@ -113,16 +115,16 @@ std::list<PTIT::Coord> WorkingAreaProcessor::GetNeighbours(
 
 /*------------------------------- route getter -------------------------------*/
 std::list<PTIT::Coord> GetRoute(const BM::Bitmap& bitmap,
-                                const PTIT::Coord& destination) {
+                                PTIT::Coord destination) {
   std::list<PTIT::Coord> route;
   route.push_front(destination);
 
-  PTIT::Coord curr_coord = destination / bitmap.GetDensity();
+  destination = destination / bitmap.GetDensity();
 
-  while (bitmap.GetBFSPoint(curr_coord.x, curr_coord.y).parent != curr_coord) {
-    curr_coord = bitmap.GetBFSPoint(curr_coord.x, curr_coord.y).parent /
+  while (bitmap.GetBFSPoint(destination.x, destination.y).parent != destination) {
+    destination = bitmap.GetBFSPoint(destination.x, destination.y).parent *
                  bitmap.GetDensity();
-    route.push_front(curr_coord);
+    route.push_front(destination);
   }
 
   return route;

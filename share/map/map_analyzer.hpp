@@ -12,7 +12,7 @@ class WorkingAreaProcessor {
  public:
   WorkingAreaProcessor(BM::Bitmap& bitmap, int border_offset,
                        int dist_threshold);
-  std::optional<PTIT::Coord> ProcessArea(const PTIT::Coord& position);
+  std::optional<PTIT::Coord> ProcessArea(PTIT::Coord position);
 
  private:
   BM::Bitmap& bitmap_;
@@ -24,6 +24,6 @@ class WorkingAreaProcessor {
 };
 
 std::list<PTIT::Coord> GetRoute(const BM::Bitmap& bitmap,
-                                const PTIT::Coord& destination);
+                                PTIT::Coord destination);
 
 }  // namespace MA
