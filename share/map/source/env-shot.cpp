@@ -56,8 +56,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
   auto border_graphic = PTIT::Segment(left_coord, right_coord).GetGraphic();
   for (auto iter = border_graphic.begin(); iter != --border_graphic.end();
        ++iter) {
-    auto tmp_iter = iter;
-    PTIT::Coord border[2] = {*tmp_iter, *(++tmp_iter)};
+    PTIT::Coord border[2] = {*iter, *(std::next(iter))};
 
     bool valid = true;
 
