@@ -18,7 +18,7 @@
 #define DIR_PIN 4
 #define SPEED_PIN 6
 
-#define FROM_MAGNET_MC_STEPS -240
+#define ZERO_DIFF 300
 
 // magnet detector
 #define HOLL_PIN A7
@@ -118,28 +118,25 @@ class Motor {
 
 bool MagnetDetected() { return analogRead(HOLL_PIN) >= 1000; }
 
+void CalibrateMotor(Motor& motor) {
+  motor.SetSpeed(false);
+
+  motor.ChangeDir();
+  while (!MagnetDetected()) {
+    motor.MakeStep();
+  }
+  motor.ChangeDir();
+
+  motor.SetSpeed(false);
+  while (MagnetDetected()) {
+    motor.MakeStep();
+  }
+}
+
 Motor* InitMotor() {
   Motor* motor = new Motor;
 
-  while (!MagnetDetected()) {
-    motor->MakeStep();
-  }
-
-  motor->SetSpeed(false);
-  while (MagnetDetected()) {
-    motor->MakeStep();
-  }
-
-  if (FROM_MAGNET_MC_STEPS < 0) {
-    motor->ChangeDir();
-  }
-  for (int i = 0; i < abs(FROM_MAGNET_MC_STEPS); ++i) {
-    motor->MakeStep();
-  }
-
-  if (FROM_MAGNET_MC_STEPS < 0) {
-    motor->ChangeDir();
-  }
+  CalibrateMotor(*motor);
 
   return motor;
 }
@@ -159,24 +156,31 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() <= 0) {
+  if (Serial.available() <= 0 || Serial.read() != '0') {
     return;
   }
   Serial.readString();
 
+  CalibrateMotor(*motor);
+
   for (int i = 0; i < STEP_NUM; ++i) {
-    float curr_angle = i * (float)CIRCLE_DEG_NUM / STEP_NUM;
+    float curr_angle = i * (float)CIRCLE_DEG_NUM / STEP_NUM + ZERO_DIFF;
+    if (curr_angle >= 360) {
+      curr_angle -= CIRCLE_DEG_NUM;
+    }
 
     radio->StartListening();
 
-    while (!radio->IsAvailable());
+    while (!radio->IsAvailable())
+      ;
     radio->Receive();
 
-    while (!radio->IsAvailable());
+    while (!radio->IsAvailable())
+      ;
     int measure = radio->Receive();
     radio->StopListening();
 
-    Serial.print(curr_angle, 4);
+    Serial.print(curr_angle, 1);
     Serial.print(" ");
     Serial.println(measure);
     motor->MakeFullStep();
