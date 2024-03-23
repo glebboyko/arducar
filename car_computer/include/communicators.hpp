@@ -16,7 +16,20 @@ class DesktopCommunicator {
   ~DesktopCommunicator();
 
   std::shared_ptr<MSG::Message> Receive();
-  void Send(std::shared_ptr<MSG::Message>);
+
+  template <typename T, typename... Args>
+  void Send(const Args&... args) {
+    T msg(args...);
+
+    acceptor_mutex_.lock();
+    try {
+      client_.Send(msg);
+    } catch (TCP::TcpException& exception) {
+      client_.StopClient();
+      lost_messages_.push(std::shared_ptr<MSG::Message>(new T(msg)));
+    }
+    acceptor_mutex_.unlock();
+  }
 
  private:
   TCP::TcpServer server_;

@@ -33,16 +33,6 @@ std::shared_ptr<MSG::Message> DesktopCommunicator::Receive() {
   return message;
 }
 
-void DesktopCommunicator::Send(std::shared_ptr<MSG::Message> message) {
-  acceptor_mutex_.lock();
-  try {
-    client_.Send(*message);
-  } catch (TCP::TcpException& exception) {
-    lost_messages_.push(message);
-  }
-  acceptor_mutex_.unlock();
-}
-
 void DesktopCommunicator::Acceptor() {
   while (true) {
     try {
