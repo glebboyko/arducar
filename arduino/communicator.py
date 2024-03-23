@@ -34,7 +34,7 @@ try:
         (wheel_conn if arduino == "0" else radar_conn).write(message.encode('utf-8'))
 
         if arduino == "0":
-            step_num = int(message[1])
+            step_num = int(command[1])
             while True:
                 step = int(wheel_conn.readline().decode('utf-8'))
                 tcp_conn.Send(step)
@@ -44,7 +44,7 @@ try:
             while True:
                 data = radar_conn.readline().decode('utf-8')
                 tcp_conn.Send(data)
-                if data.isnumeric():
+                if data.strip().isnumeric():
                     break
 
 
