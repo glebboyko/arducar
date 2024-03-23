@@ -25,10 +25,10 @@ enum CurrAction { Init, Scanning, MovingToPoint, Computing, Finish };
 
 struct Message {
  public:
-  virtual MessageType GetType() const = 0;
+  virtual MessageType GetType() const;
 
  protected:
-  virtual void PrintData(std::ostream&) const = 0;
+  virtual void PrintData(std::ostream&) const;
 
   friend std::ostream& operator<<(std::ostream&, const Message&);
 };

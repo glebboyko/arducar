@@ -13,6 +13,9 @@ std::ostream& operator<<(std::ostream& os, const InitData& init) {
             << " " << init.border_offset << " " << init.dist_threshold;
 }
 
+MessageType Message::GetType() const { return TStatus; }
+void Message::PrintData(std::ostream&) const {}
+
 std::ostream& operator<<(std::ostream& os, const Message& message) {
   os << message.GetType() << " ";
   message.PrintData(os);

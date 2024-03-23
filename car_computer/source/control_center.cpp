@@ -82,7 +82,11 @@ void ControlCenter::GoToPoint(PTIT::Coord point) {
 }
 
 void ControlCenter::SetStatus(CC::CurrStatus curr_status) {
-  desktop_.Send<MSG::Action>(MSG::Computing);
+  if (curr_status == CurrStatus::Stop) {
+    desktop_.Send<MSG::Action>(MSG::Finish);
+  } else {
+    desktop_.Send<MSG::Action>(MSG::Computing);
+  }
   desktop_.Send<MSG::Status>(curr_status);
 }
 

@@ -73,7 +73,7 @@ void EnvShot::AddMeasure(double deg, int mm_dist, double deg_width,
       }
 
       int dist = PTIT::GetDistance(mm_radar_coord,
-                                   PTIT::Coord(x, y) * bitmap_.GetDensity());
+                                   PTIT::Coord{x, y} * bitmap_.GetDensity());
 
       if (pixel.is_border && pixel.dist < dist) {
         valid = false;

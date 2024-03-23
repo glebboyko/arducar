@@ -21,11 +21,12 @@ void AutoMapBuilder(CC::ControlCenter& control_center) {
     control_center.ScanEnvironment();
     auto point = control_center.GetDestination();
     if (!point.has_value()) {
-      return;
+      break;
     }
 
     control_center.GoToPoint(point.value());
   }
+  control_center.SetStatus(CC::CurrStatus::Stop);
 }
 
 }  // namespace RNS
