@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <tcp-server.hpp>
 #include <thread>
@@ -31,6 +32,26 @@ class DesktopCommunicator {
 
   bool SendInitData(TCP::TcpClient&);
   bool SendLostMessages(TCP::TcpClient&);
+};
+
+class ArduinoCommunicator {
+ public:
+  enum Direction { Left = 0, Forward = 1, Right = 2 };
+  enum Speed { Full = 1, Half = 2, Quarter = 4, Eighth = 8, Sixteenth = 16 };
+
+  ArduinoCommunicator();
+
+  void StartRadar();
+  void MoveCar(int step_num, Direction direction, Speed speed);
+
+  std::optional<std::pair<float, int>> GetScan();
+  int GetStep();
+
+ private:
+  TCP::TcpClient arduino_;
+
+  const int kTimeout = 1'000;
+  enum ArduinoType { Wheels = 0, Radar = 1 };
 };
 
 }  // namespace CCM

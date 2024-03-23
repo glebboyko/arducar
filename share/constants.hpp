@@ -13,4 +13,6 @@ const int kDistThreshold = 500;
 const std::string kServerAddress = "192.168.1.100";
 const int kTcpCommPort = 44'450;
 
+const int kTcpArduinoPort = 44'440;
+
 }  // namespace CONST

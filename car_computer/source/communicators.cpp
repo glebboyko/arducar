@@ -1,7 +1,10 @@
 #include "communicators.hpp"
 
+#include "constants.hpp"
+
 namespace CCM {
 
+/*--------------------------------- desktop ----------------------------------*/
 DesktopCommunicator::DesktopCommunicator(int port,
                                          const MSG::InitData& init_data)
     : server_(port), init_data_(init_data) {
@@ -88,6 +91,34 @@ bool DesktopCommunicator::SendLostMessages(TCP::TcpClient& client) {
   }
 
   return true;
+}
+
+/*--------------------------------- arduino ----------------------------------*/
+ArduinoCommunicator::ArduinoCommunicator()
+    : arduino_(TCP::TcpServer(CONST::kTcpArduinoPort).AcceptConnection()) {}
+
+void ArduinoCommunicator::StartRadar() { arduino_.Send(Wheels, 0); }
+void ArduinoCommunicator::MoveCar(int step_num, Direction direction,
+                                  Speed speed) {
+  arduino_.Send(Radar, step_num, direction, speed);
+}
+
+std::optional<std::pair<float, int>> ArduinoCommunicator::GetScan() {
+  float angle;
+  int dist;
+  while (!arduino_.Receive(kTimeout, angle, dist))
+    ;
+
+  if (angle == 0) {
+    return {};
+  }
+  return std::pair{angle, dist};
+}
+int ArduinoCommunicator::GetStep() {
+  int step;
+  while (!arduino_.Receive(kTimeout, step));
+
+  return step;
 }
 
 }  // namespace CCM
