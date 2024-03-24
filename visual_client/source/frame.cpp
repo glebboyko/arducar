@@ -112,6 +112,7 @@ Layer& Frame::GetRoute() { return route_; }
 Layer& Frame::GetBorders() { return borders_; }
 Layer& Frame::GetDestMark() { return dest_mark_; }
 Layer& Frame::GetPosition() { return position_; }
+Layer& Frame::GetDisconnected() { return disconnected_; }
 
 struct UpdateData {
   Layer& layer;
