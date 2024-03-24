@@ -1,12 +1,20 @@
 #pragma once
 
 #include <wx/wx.h>
+
 #include <image-creator.hpp>
 
 namespace IF {
 
 const wxSize kPosiSize = {60, 60};
 const wxSize kDestMarkSize = {50, 50};
+
+const PTIT::RGB kBaseColor = PTIT::RGB{229, 236, 233};
+const PTIT::RGB kScanColor = PTIT::RGB{255, 255, 255};
+const PTIT::RGB kWorkingSpaceColor = PTIT::RGB{68, 175, 105};
+const PTIT::RGB kRouteColor = PTIT::RGB{252, 171, 16};
+const PTIT::RGB kBorderColor = PTIT::RGB{0, 0, 0};
+const PTIT::RGB kDisconnectedColor = PTIT::RGB{0, 0, 0};
 
 wxImage FillImage(wxSize size, PTIT::RGB background_color);
 wxImage FillImage(wxSize size, PTIT::RGB background_color, unsigned char alpha);
@@ -53,6 +61,7 @@ class Frame : public wxFrame {
   Layer& GetBorders();
   Layer& GetDestMark();
   Layer& GetPosition();
+  Layer& GetDisconnected();
 
   void Update(Layer&);
 
@@ -64,6 +73,7 @@ class Frame : public wxFrame {
   Layer borders_;
   Layer dest_mark_;
   Layer position_;
+  Layer disconnected_;
 
   wxThread* update_thread_;
 

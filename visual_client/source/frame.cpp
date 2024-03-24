@@ -44,6 +44,7 @@ Layer::Layer(wxImage&& image, wxWindow* parent, wxSize cont_size,
       deg_(deg) {
   bitmap_ = new wxStaticBitmap(parent, wxID_ANY, image_, wxDefaultPosition,
                                base_size_);
+  Show(false);
   Update();
 }
 
@@ -70,40 +71,6 @@ void Layer::Update() {
   bitmap_->SetPosition(norm_position);
 }
 
-class UpdaterThread : public wxThread {
- public:
-  UpdaterThread(Frame* frame) : wxThread(wxTHREAD_DETACHED), frame_(frame) {}
-
-  virtual void* Entry() {
-    using cms = std::chrono::milliseconds;
-
-    const int kLayerNum = 6;
-    Layer* layers[kLayerNum] = {
-        &frame_->GetRadarScans(), &frame_->GetWorkingSpace(),
-        &frame_->GetRoute(),      &frame_->GetBorders(),
-        &frame_->GetDestMark(),   &frame_->GetPosition()};
-    cms layer_update_freq[kLayerNum] = {cms(1000), cms(1000), cms(1000),
-                                        cms(1000), cms(1000), cms(33)};
-    cms layer_last_update[kLayerNum] = {cms(0), cms(0), cms(0),
-                                        cms(0), cms(0), cms(0)};
-    while (true) {
-      for (int i = 0; i < kLayerNum; ++i) {
-        if (std::chrono::system_clock::now().time_since_epoch() -
-                layer_last_update[i] >=
-            layer_update_freq[i]) {
-          frame_->Update(*layers[i]);
-          layer_last_update[i] = std::chrono::duration_cast<cms>(
-              std::chrono::system_clock::now().time_since_epoch());
-        }
-      }
-      std::this_thread::sleep_for(cms(10));
-    }
-  }
-
- private:
-  Frame* frame_;
-};
-
 const wxEventType IF::Frame::kUpdateEvent = wxNewEventType();
 BEGIN_EVENT_TABLE(IF::Frame, wxFrame)
 EVT_COMMAND(wxID_ANY, kUpdateEvent, IF::Frame::UpdateEvent)
@@ -116,39 +83,26 @@ Frame::Frame(wxSize map_size)
 
   wxInitAllImageHandlers();
 
-  auto window_ratio = static_cast<double>(map_size.x) / map_size.y;
-  wxSize window_size = {static_cast<int>(kStandardHeight * window_ratio),
-                        kStandardHeight};
-  SetSize(window_size);
+  SetSize(map_size);
 
-  wxPoint center_position = {window_size.x / 2, window_size.y / 2};
-  base_ = Layer(FillImage(window_size, {229, 236, 233}), this, window_size,
-                center_position);
+  wxPoint center_position = {map_size.x / 2, map_size.y / 2};
+  base_ =
+      Layer(FillImage(map_size, kBaseColor), this, map_size, center_position);
 
-  radar_scans_ = Layer(FillImage(map_size, {255, 255, 255}, 0), this,
-                       window_size, center_position);
-
-  working_space_ = Layer(FillImage(map_size, {68, 175, 105}, 50), this,
-                         window_size, center_position);
-  working_space_.Show(false);
-
-  route_ = Layer(FillImage(map_size, {252, 171, 16}, 0), this, window_size,
+  radar_scans_ = Layer(FillImage(map_size, kScanColor, 0), this, map_size,
+                       center_position);
+  working_space_ = Layer(FillImage(map_size, kWorkingSpaceColor, 50), this,
+                         map_size, center_position);
+  route_ = Layer(FillImage(map_size, kRouteColor, 0), this, map_size,
                  center_position);
-  route_.Show(false);
-
-  borders_ = Layer(FillImage(map_size, {0, 0, 0}, 0), this, window_size,
+  borders_ = Layer(FillImage(map_size, kBorderColor, 0), this, map_size,
                    center_position);
-
   dest_mark_ = Layer(wxImage("../dest_mark.png", wxBITMAP_TYPE_PNG), this,
                      kDestMarkSize);
-  dest_mark_.Show(false);
-
   position_ = Layer(wxImage("../arducar_position.png", wxBITMAP_TYPE_PNG), this,
                     kPosiSize);
-  position_.Show(false);
-
-  update_thread_ = new UpdaterThread(this);
-  update_thread_->Run();
+  disconnected_ = Layer(FillImage(map_size, kDisconnectedColor), this, map_size,
+                        center_position);
 }
 
 Layer& Frame::GetRadarScans() { return radar_scans_; }
