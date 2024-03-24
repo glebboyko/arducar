@@ -87,10 +87,10 @@ bool DesktopCommunicator::SendLostMessages(TCP::TcpClient& client) {
 ArduinoCommunicator::ArduinoCommunicator()
     : arduino_(TCP::TcpServer(CONST::kTcpArduinoPort).AcceptConnection()) {}
 
-void ArduinoCommunicator::StartRadar() { arduino_.Send(Wheels, 0); }
+void ArduinoCommunicator::StartRadar() { arduino_.Send(Radar, 0); }
 void ArduinoCommunicator::MoveCar(int step_num, Direction direction,
                                   Speed speed) {
-  arduino_.Send(Radar, step_num, direction, speed);
+  arduino_.Send(Wheels, step_num, direction, speed);
 }
 
 std::optional<std::pair<float, int>> ArduinoCommunicator::GetScan() {
