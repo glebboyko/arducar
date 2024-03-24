@@ -22,6 +22,7 @@ include_directories(include)
 #adding executables
 add_executable(${PROJECT_NAME} main.cpp
         source/frame.cpp
+        source/data_processor.cpp
         source/communicator.cpp
 
         ../share/map/source/bitmap.cpp
