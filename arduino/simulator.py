@@ -21,6 +21,7 @@ while True:
         tcp_conn = TcpClient('localhost', 44440)
         break
     except Exception as exception:
+        print(exception)
         sleep(0.1)
 
 try:
@@ -29,6 +30,7 @@ try:
         if len(command) == 0:
             continue
 
+        print(command)
         arduino = command[0]
 
         message = '\n'.join(command[1:])
@@ -51,16 +53,20 @@ try:
             print("\tSpeed: 1/%d" % speed)
 
             for i in range(step_num):
-                get_step(i + 1)
+                if i % 100 == 0:
+                    get_step(i + 1)
+                else:
+                    sleep(0.1)
                 tcp_conn.Send(i + 1)
 
             print("Move done")
         else:
             print("Computer want car to make scan")
 
-            for i in range(200):
-                dist = get_radar_input(i * radar_width)
-                tcp_conn.Send(i * radar_width, dist)
+            for i in range(10):
+                dist = get_radar_input(i * 20 * radar_width)
+                for j in range(20):
+                    tcp_conn.Send((i * 20 + j) * radar_width, dist)
 
             tcp_conn.Send(0)
             print("Scan done")
