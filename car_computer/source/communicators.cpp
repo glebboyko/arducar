@@ -95,11 +95,11 @@ void ArduinoCommunicator::MoveCar(int step_num, Direction direction,
 
 std::optional<std::pair<float, int>> ArduinoCommunicator::GetScan() {
   float angle;
-  int dist;
+  int dist = -1;
   while (!arduino_.Receive(kTimeout, angle, dist))
     ;
 
-  if (angle == 0) {
+  if (dist == -1) {
     return {};
   }
   return std::pair{angle, dist};
