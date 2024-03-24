@@ -97,10 +97,11 @@ Frame::Frame(wxSize map_size)
                  center_position);
   borders_ = Layer(FillImage(map_size, kBorderColor, 0), this, map_size,
                    center_position);
-  dest_mark_ = Layer(wxImage("../dest_mark.png", wxBITMAP_TYPE_PNG), this,
-                     kDestMarkSize);
-  position_ = Layer(wxImage("../arducar_position.png", wxBITMAP_TYPE_PNG), this,
-                    kPosiSize);
+  dest_mark_ = Layer(wxImage("../images/dest_mark.png", wxBITMAP_TYPE_PNG),
+                     this, kDestMarkSize);
+  position_ =
+      Layer(wxImage("../images/arducar_position.png", wxBITMAP_TYPE_PNG), this,
+            kPosiSize);
   disconnected_ = Layer(FillImage(map_size, kDisconnectedColor), this, map_size,
                         center_position);
 }
