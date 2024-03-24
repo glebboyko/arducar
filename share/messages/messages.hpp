@@ -13,6 +13,8 @@ struct InitData {
   float mm_per_px;
   int border_offset;
   int dist_threshold;
+  
+  PTIT::Coord init_coord;
 };
 
 std::istream& operator>>(std::istream&, InitData&);

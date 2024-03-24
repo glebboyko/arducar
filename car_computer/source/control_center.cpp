@@ -8,15 +8,15 @@ namespace CC {
 
 ControlCenter::ControlCenter(int px_size_x, int px_size_y, float mm_per_px,
                              int border_offset, int dist_threshold)
-    : bitmap_(px_size_x, px_size_y, mm_per_px),
+    : car_position_(PTIT::Coord{px_size_x, px_size_y} * mm_per_px),
+      bitmap_(px_size_x, px_size_y, mm_per_px),
       env_shot_(bitmap_),
       working_area_(bitmap_, border_offset, dist_threshold),
-      desktop_(CONST::kTcpCommPort, {px_size_x, px_size_y, mm_per_px,
-                                     border_offset, dist_threshold}) {
+      desktop_(CONST::kTcpCommPort,
+               {px_size_x, px_size_y, mm_per_px, border_offset, dist_threshold,
+                car_position_}) {
   desktop_.Send<MSG::Status>(MSG::Act);
   desktop_.Send<MSG::Action>(MSG::Init);
-
-  car_position_ = PTIT::Coord{px_size_x, px_size_y} * mm_per_px;
 }
 
 std::list<ScanData> ControlCenter::ScanEnvironment() {

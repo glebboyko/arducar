@@ -43,17 +43,17 @@ class ControlCenter {
         static_cast<CCM::ArduinoCommunicator::Speed>(CONST::kDefaultSpeed);
   };
 
+  float car_angle_ = 0;
+  PTIT::Coord car_position_;
+  CurrStatus status_ = MSG::Act;
+  bool processed_area_ = false;
+
   BM::Bitmap bitmap_;
   EnvShot env_shot_;
   MA::WorkingAreaProcessor working_area_;
 
   CCM::DesktopCommunicator desktop_;
   CCM::ArduinoCommunicator arduino_;
-
-  float car_angle_ = 0;
-  PTIT::Coord car_position_;
-  CurrStatus status_ = MSG::Act;
-  bool processed_area_ = false;
 
   std::pair<float, std::list<LowMove>> ComputeLowMove(PTIT::Coord destination);
 };

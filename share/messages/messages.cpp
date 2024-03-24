@@ -6,11 +6,13 @@ namespace MSG {
 
 std::istream& operator>>(std::istream& is, InitData& init) {
   return is >> init.px_size_x >> init.px_size_y >> init.mm_per_px >>
-         init.border_offset >> init.dist_threshold;
+         init.border_offset >> init.dist_threshold >> init.init_coord.x >>
+         init.init_coord.y;
 }
 std::ostream& operator<<(std::ostream& os, const InitData& init) {
   return os << init.px_size_x << " " << init.px_size_y << " " << init.mm_per_px
-            << " " << init.border_offset << " " << init.dist_threshold;
+            << " " << init.border_offset << " " << init.dist_threshold << " "
+            << init.init_coord.x << " " << init.init_coord.y;
 }
 
 MessageType Message::GetType() const { return TStatus; }
