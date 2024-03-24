@@ -1,14 +1,10 @@
 #pragma once
 
 #include <wx/wx.h>
-
-#include "env-shot.hpp"
-#include <primitives.hpp>
-#include <tcp-client.hpp>
+#include <image-creator.hpp>
 
 namespace IF {
 
-const int kStandardHeight = 1200;
 const wxSize kPosiSize = {60, 60};
 const wxSize kDestMarkSize = {50, 50};
 
