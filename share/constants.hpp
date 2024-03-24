@@ -28,4 +28,7 @@ const int kStepsPerMeter = 2'000;
 
 const int kDefaultSpeed = 2;
 
+// visual client
+const int kLineWidth = 4;
+
 }  // namespace CONST
