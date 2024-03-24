@@ -23,8 +23,6 @@ add_executable(${PROJECT_NAME}
         source/communicators.cpp
         ../share/messages/messages.cpp
 
-        source/movement_processor.cpp
-
         ../share/map/source/env-shot.cpp
         ../share/map/source/map_analyzer.cpp
         ../share/map/source/bitmap.cpp)
