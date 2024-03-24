@@ -45,11 +45,13 @@ float Bitmap::GetDensity() const noexcept { return mm_per_px_; }
 
 /*------------------------------ visual bitmap -------------------------------*/
 VisualBitmap::VisualBitmap(int size_x, int size_y, float mm_per_px,
-                           unsigned char* scan_data, unsigned char* scan_alpha,
+                           int line_width, unsigned char* scan_data,
+                           unsigned char* scan_alpha,
                            unsigned char* border_alpha,
                            unsigned char* working_space_alpha,
                            unsigned char* route_alpha)
     : Bitmap(size_x, size_y, mm_per_px),
+      line_width_(line_width),
       scan_data_(scan_data),
       scan_alpha_(scan_alpha),
       border_alpha_(border_alpha),
@@ -62,8 +64,19 @@ void VisualBitmap::SetScanData(int x, int y,
 
   auto position = GetPosition(x, y);
   if (scan_data.is_border) {
-    scan_alpha_[position] = 0;
-    border_alpha_[position] = 255;
+    if (line_width_ > 1) {
+      for (auto [area_x, area_y] : PTIT::FulfillArea(
+               PTIT::Circe({x, y}, line_width_ / 2).GetGraphic())) {
+        if (IsPointInRange(area_x, area_y)) {
+          auto area_position = GetPosition(area_x, area_y);
+          scan_alpha_[area_position] = 0;
+          border_alpha_[area_position] = 255;
+        }
+      }
+    } else {
+      scan_alpha_[position] = 0;
+      border_alpha_[position] = 255;
+    }
   } else {
     if (curr_sector_ != scan_data.call_identifier) {
       curr_sector_ = scan_data.call_identifier;

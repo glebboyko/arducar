@@ -51,7 +51,7 @@ class Bitmap {
 
 class VisualBitmap : public Bitmap {
  public:
-  VisualBitmap(int size_x, int size_y, float mm_per_px,
+  VisualBitmap(int size_x, int size_y, float mm_per_px, int line_width,
                unsigned char* scan_data, unsigned char* scan_alpha,
                unsigned char* border_alpha, unsigned char* working_space_alpha,
                unsigned char* route_alpha);
@@ -69,6 +69,8 @@ class VisualBitmap : public Bitmap {
  private:
   size_t curr_sector_ = 0;
   PTIT::RGB sector_color_ = GetRandomColor();
+
+  int line_width_;
 
   unsigned char* scan_data_;
   unsigned char* scan_alpha_;
