@@ -3,7 +3,7 @@
 #include "runners.hpp"
 
 int main() {
-  CC::ControlCenter control_center(CONST::kPxSizeX, CONST::kPxSizeX,
+  CC::ControlCenter control_center(CONST::kPxSizeX, CONST::kPxSizeY,
                                    CONST::kMmPerPx);
 
   RNS::AutoMapBuilder(control_center);
